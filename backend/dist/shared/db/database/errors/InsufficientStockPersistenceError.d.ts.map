@@ -1,0 +1,1 @@
+{"version":3,"file":"InsufficientStockPersistenceError.d.ts","sourceRoot":"","sources":["../../../../../src/shared/db/database/errors/InsufficientStockPersistenceError.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,gBAAgB,EAAE,MAAM,uBAAuB,CAAC;AAEzD,qBAAa,iCAAkC,SAAQ,gBAAgB;gBACvD,OAAO,SAAuB;CAI7C"}
