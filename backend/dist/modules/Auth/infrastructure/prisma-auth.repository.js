@@ -54,9 +54,9 @@ export class PrismaAuthRespository {
     }
     async upsertSession(userId, token, expiresAt) {
         await this.db.userSession.upsert({
-            where: { token }, // Note: assuming token is the unique identifier for userSession from schema
+            where: { userId }, // Now userId is unique and can be used for upsert
             update: {
-                userId,
+                token,
                 expiresAt
             },
             create: {

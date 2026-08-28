@@ -34,7 +34,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   userRoles UserRole[]
-  sessions  UserSession[]
+  session   UserSession?
   auditLogs AuditLog[]
 
   @@map("users")
@@ -42,7 +42,7 @@ model User {
 
 model UserSession {
   id        String   @id @default(uuid())
-  userId    String   @map("user_id")
+  userId    String   @unique @map("user_id")
   token     String   @unique @db.VarChar(500) // Access or Refresh Token reference
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")

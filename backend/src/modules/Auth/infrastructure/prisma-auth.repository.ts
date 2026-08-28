@@ -11,8 +11,8 @@ export class PrismaAuthRespository implements AuthRepository {
         const user = await this.db.user.findFirst({
             where: { email, isActive: true },
             include: {
-                userRoles: { 
-                    select: { 
+                userRoles: {
+                    select: {
                         role: {
                             select: {
                                 name: true,
@@ -37,8 +37,8 @@ export class PrismaAuthRespository implements AuthRepository {
         const user = await this.db.user.findUnique({
             where: { id, isActive: true },
             include: {
-                userRoles: { 
-                    select: { 
+                userRoles: {
+                    select: {
                         role: {
                             select: {
                                 name: true,
@@ -60,14 +60,14 @@ export class PrismaAuthRespository implements AuthRepository {
     }
 
     async upsertSession(
-        userId: AuthUser["id"], 
-        token: AuthSession['token'], 
+        userId: AuthUser["id"],
+        token: AuthSession['token'],
         expiresAt: Date
     ): Promise<void> {
         await this.db.userSession.upsert({
-            where: { token }, // Note: assuming token is the unique identifier for userSession from schema
+            where: { userId }, // Now userId is unique and can be used for upsert
             update: {
-                userId,
+                token,
                 expiresAt
             },
             create: {
