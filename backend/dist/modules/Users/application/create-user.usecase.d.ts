@@ -1,6 +1,6 @@
 import type { UsersRepository } from "../domain/users.repository.js";
 import type { GetUser } from "../domain/user.entity.js";
-import type { HashProvider } from "@shared/domain/hash.provider.js";
+import type { HashProvider } from "../../../shared/domain/hash.provider.js";
 import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
 interface CreateUserRequest {
     email: string;

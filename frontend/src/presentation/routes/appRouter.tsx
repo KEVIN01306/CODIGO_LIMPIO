@@ -5,12 +5,16 @@ import { authRoutes } from '../../modules/auth/presentation/auth.routes';
 import { dashboardRoutes } from '../../modules/dashboard/presentation/dashboard.routes';
 import { academicRoutes } from '../../modules/academic/academic.routes';
 import { assignmentRoutes } from '../../modules/assignment/presentation/assignment.routes';
+import { usersRoutes } from '../../modules/users/presentation/users.routes';
+import { studentDashboardRoutes } from '../../modules/studentDashboard/studentDashboard.routes';
+import { teacherDashboardRoutes } from '../../modules/teacherDashboard/teacherDashboard.routes';
 
 const BlankLayout = lazy(() => import('../layouts/blankLayout/BlankLayout'));
 const FullLayout = lazy(() => import('../layouts/fullLayout/FullLayout'));
 const ProtectedRoute = lazy(() => import('./ProtectedRoute'));
 const AccessDeniedPage = lazy(() => import('../../shared/pages/AccessDeniedPage'));
 const ProfilePage = lazy(() => import('../../modules/auth/presentation/pages/Profile.page'));
+const SandboxEditorPage = lazy(() => import('../../modules/sandbox/presentation/pages/SandboxEditor.page'));
 
 const FullPageLoader = () => (
   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
@@ -48,6 +52,12 @@ export const appRouter = createBrowserRouter([
           ...dashboardRoutes,
           ...academicRoutes,
           assignmentRoutes,
+          usersRoutes,
+          {
+            path: 'my-courses',
+            children: studentDashboardRoutes,
+          },
+          ...teacherDashboardRoutes,
           {
             path: 'perfil',
             element: <ProfilePage />,
@@ -57,6 +67,14 @@ export const appRouter = createBrowserRouter([
             element: <AccessDeniedPage />,
           },
         ],
+      },
+      {
+        path: 'sandbox/:submissionId',
+        element: (
+          <Suspense fallback={<FullPageLoader />}>
+            <SandboxEditorPage />
+          </Suspense>
+        ),
       },
     ],
   },

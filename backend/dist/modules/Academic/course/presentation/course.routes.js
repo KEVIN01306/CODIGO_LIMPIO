@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { courseController } from "../../academic.module.js";
-import { AuthMiddleware } from "@app/middleware/Auth.middleware.js";
-import { ValidatedMiddleware } from "@app/middleware/Validated.middleware.js";
+import { AuthMiddleware } from "../../../../app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "../../../../app/middleware/Validated.middleware.js";
 import { CreateCourseSchema, UpdateCourseSchema, CourseIdSchema } from "./course.schemas.js";
 const router = Router();
 const authMiddleware = new AuthMiddleware();

@@ -49,7 +49,17 @@ const MenuItems: MenuItem[] = [
     icon: AssignmentOutlined,
     children: [
       { name: "Course Offerings", link: "/assignment/offerings", icon: SchoolOutlined, permissions: ["courseOfferings:read"] },
-      { name: "Enrollments", link: "/assignment/enrollments", icon: GroupOutlined, permissions: ["courseEnrollments:read"] },
+    ]
+  },
+
+  { group: "Users Management", permissions: ["users:read"] }, // Assuming they use "users" for generic access or maybe they'll seed teacher/student specific permissions.
+  {
+    module: "Users",
+    name: "Users Directory",
+    icon: GroupOutlined,
+    children: [
+      { name: "Teachers", link: "/users/teachers", icon: GroupOutlined, permissions: ["users:read"] }, // adjust perms if they seeded teachers:read
+      { name: "Students", link: "/users/students", icon: SchoolOutlined, permissions: ["users:read"] },
     ]
   },
 

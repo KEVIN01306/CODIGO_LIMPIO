@@ -58,6 +58,7 @@ export class PrismaCourseEnrollmentsRepository implements CourseEnrollmentReposi
         if (filters?.offeringId) where.offeringId = filters.offeringId;
         if (filters?.studentId) where.studentId = filters.studentId;
         if (filters?.status) where.status = filters.status;
+        if (filters?.userId) where.student = { userId: filters.userId };
 
         const [total, records] = await Promise.all([
             this.prisma.courseEnrollment.count({ where }),

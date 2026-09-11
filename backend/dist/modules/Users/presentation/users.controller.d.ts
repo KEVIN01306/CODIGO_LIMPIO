@@ -1,11 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
-import BaseController from "@presentation/base.controller.js";
+import BaseController from "../../../presentation/base.controller.js";
 import type { CreateUserUseCase } from "../application/create-user.usecase.js";
 import type { UpdateUserUseCase } from "../application/update-user.usecase.js";
 import type { ListUsersUseCase } from "../application/list-users.usecase.js";
 import type { DisableUserUseCase } from "../application/disable-user.usecase.js";
 import type { DeleteUserUseCase } from "../application/delete-user.usecase.js";
-import type { HashProvider } from "@shared/domain/hash.provider.js";
+import type { HashProvider } from "../../../shared/domain/hash.provider.js";
 export declare class UsersController extends BaseController {
     private readonly createUserUseCase;
     private readonly updateUserUseCase;

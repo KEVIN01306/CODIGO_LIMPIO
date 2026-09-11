@@ -1,6 +1,6 @@
-import type { AcademicProgramsRepository } from "@modules/Academic/program/domain/academicProgram.repository.js";
-import type { GetAcademicProgram } from "@modules/Academic/program/domain/academicProgram.entity.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { AcademicProgramsRepository } from "../../../Academic/program/domain/academicProgram.repository.js";
+import type { GetAcademicProgram } from "../../../Academic/program/domain/academicProgram.entity.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 interface CreateAcademicProgramRequest {
     tenantId: string;
     code: string;

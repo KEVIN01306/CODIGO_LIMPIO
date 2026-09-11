@@ -8,6 +8,6 @@ const Loader = () => <div>Loading...</div>;
 export const courseEnrollmentRoutes: RouteObject[] = [
   { index: true, element: <Suspense fallback={<Loader />}><RouteProtector requiredPermission="courseEnrollments:read"><CourseEnrollmentList /></RouteProtector></Suspense> },
   { path: 'create', element: <Suspense fallback={<Loader />}><RouteProtector requiredPermission="courseEnrollments:create"><CourseEnrollmentCreate /></RouteProtector></Suspense> },
-  { path: ':id', element: <Suspense fallback={<Loader />}><RouteProtector requiredPermission="courseEnrollments:read"><CourseEnrollmentDetail /></RouteProtector></Suspense> },
-  { path: ':id/edit', element: <Suspense fallback={<Loader />}><RouteProtector requiredPermission="courseEnrollments:update"><CourseEnrollmentEdit /></RouteProtector></Suspense> },
+  { path: ':enrollmentId', element: <Suspense fallback={<Loader />}><RouteProtector requiredPermission="courseEnrollments:read"><CourseEnrollmentDetail /></RouteProtector></Suspense> },
+  { path: ':enrollmentId/edit', element: <Suspense fallback={<Loader />}><RouteProtector requiredPermission="courseEnrollments:update"><CourseEnrollmentEdit /></RouteProtector></Suspense> },
 ];

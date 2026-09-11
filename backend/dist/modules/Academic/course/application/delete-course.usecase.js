@@ -1,4 +1,4 @@
-import AppError from "@shared/errors/AppError.js";
+import AppError from "../../../../shared/errors/AppError.js";
 export class DeleteCourseUseCase {
     coursesRepository;
     createAuditLogUseCase;

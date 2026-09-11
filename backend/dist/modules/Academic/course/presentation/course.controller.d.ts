@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import BaseController from "@presentation/base.controller.js";
+import BaseController from "../../../../presentation/base.controller.js";
 import type { CreateCourseUseCase } from "../../course/application/create-course.usecase.js";
 import type { UpdateCourseUseCase } from "../../course/application/update-course.usecase.js";
 import type { ListCoursesUseCase } from "../../course/application/list-course.usecase.js";

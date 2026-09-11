@@ -1,5 +1,5 @@
-import JwtProvider from "@modules/Auth/domain/jwt.provider.js";
-import AppError from "@shared/errors/AppError.js";
+import JwtProvider from "../../modules/Auth/domain/jwt.provider.js";
+import AppError from "../../shared/errors/AppError.js";
 export class AuthMiddleware {
     jwtProvider;
     constructor() {

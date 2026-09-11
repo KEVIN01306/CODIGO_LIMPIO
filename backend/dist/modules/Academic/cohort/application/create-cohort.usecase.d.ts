@@ -2,7 +2,7 @@ import type { CohortsRepository } from "../../cohort/domain/cohort.repository.js
 import type { CampusesRepository } from "../../campus/domain/campus.repository.js";
 import type { AcademicProgramsRepository } from "../../program/domain/academicProgram.repository.js";
 import type { GetCohort } from "../../cohort/domain/cohort.entity.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 interface CreateCohortRequest {
     tenantId: string;
     campusId: string;

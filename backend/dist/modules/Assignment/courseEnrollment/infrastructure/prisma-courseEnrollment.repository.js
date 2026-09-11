@@ -46,6 +46,8 @@ export class PrismaCourseEnrollmentsRepository {
             where.studentId = filters.studentId;
         if (filters?.status)
             where.status = filters.status;
+        if (filters?.userId)
+            where.student = { userId: filters.userId };
         const [total, records] = await Promise.all([
             this.prisma.courseEnrollment.count({ where }),
             this.prisma.courseEnrollment.findMany({

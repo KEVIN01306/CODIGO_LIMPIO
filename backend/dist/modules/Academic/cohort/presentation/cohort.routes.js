@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { cohortController } from "../../academic.module.js";
-import { AuthMiddleware } from "@app/middleware/Auth.middleware.js";
-import { ValidatedMiddleware } from "@app/middleware/Validated.middleware.js";
+import { AuthMiddleware } from "../../../../app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "../../../../app/middleware/Validated.middleware.js";
 import { CreateCohortSchema, UpdateCohortSchema, CohortIdSchema } from "./cohort.schemas.js";
 const router = Router();
 const authMiddleware = new AuthMiddleware();

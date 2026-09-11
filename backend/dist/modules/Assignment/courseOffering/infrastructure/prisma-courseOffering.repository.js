@@ -52,6 +52,8 @@ export class PrismaCourseOfferingsRepository {
             where.cycleId = filters.cycleId;
         if (filters?.teacherId)
             where.teacherId = filters.teacherId;
+        if (filters?.userId)
+            where.teacher = { userId: filters.userId };
         const [total, records] = await Promise.all([
             this.prisma.courseOffering.count({ where }),
             this.prisma.courseOffering.findMany({

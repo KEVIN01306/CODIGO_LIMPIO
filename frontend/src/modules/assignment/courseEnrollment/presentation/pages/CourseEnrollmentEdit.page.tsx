@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Breadcrumbs, Link, CircularProgress } from '@mui/material';
 import CourseEnrollmentForm from '../components/CourseEnrollmentForm.component';
 import { Link as RouterLink, useParams, useNavigate } from 'react-router-dom';
@@ -7,16 +7,16 @@ import type { CourseEnrollment } from '../../domain/courseEnrollment.interfaces'
 import { toast } from 'react-toastify';
 
 const CourseEnrollmentEdit = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, enrollmentId } = useParams<{ id: string; enrollmentId: string }>();
   const navigate = useNavigate();
   const [initialData, setInitialData] = useState<CourseEnrollment | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      fetchData(id);
+    if (enrollmentId) {
+      fetchData(enrollmentId);
     }
-  }, [id]);
+  }, [enrollmentId]);
 
   const fetchData = async (enrollmentId: string) => {
     try {
@@ -24,7 +24,7 @@ const CourseEnrollmentEdit = () => {
       setInitialData(data);
     } catch (error) {
       toast.error('Failed to load course enrollment');
-      navigate('/assignment/enrollments');
+      navigate(`/assignment/offerings/${id}/enrollments`);
     } finally {
       setLoading(false);
     }
@@ -41,17 +41,17 @@ const CourseEnrollmentEdit = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 800, margin: '0 auto' }}>
       <Breadcrumbs sx={{ mb: 2 }}>
-        <Link component={RouterLink} color="inherit" to="/assignment/enrollments">
+        <Link component={RouterLink} color="inherit" to={`/assignment/offerings/${id}/enrollments`}>
           Course Enrollments
         </Link>
         <Typography color="text.primary">Edit</Typography>
       </Breadcrumbs>
-      
+
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
           Edit Course Enrollment
         </Typography>
-        {initialData && <CourseEnrollmentForm initialData={initialData} />}
+        {initialData && <CourseEnrollmentForm initialData={initialData} offeringId={id} />}
       </Paper>
     </Box>
   );

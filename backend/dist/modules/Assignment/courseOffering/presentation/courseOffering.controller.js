@@ -1,4 +1,4 @@
-import ResponseHttp from "../../../../http/response.http.js";
+import ResponseHttp from "../../../../app/http/response.http.js";
 import BaseController from "../../../../presentation/base.controller.js";
 export class CourseOfferingController extends BaseController {
     createUseCase;

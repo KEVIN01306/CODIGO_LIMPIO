@@ -1,6 +1,6 @@
 import type { CampusesRepository } from "../../campus/domain/campus.repository.js";
 import type { GetCampus } from "../../campus/domain/campus.entity.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 interface UpdateCampusRequest {
     code?: string;
     name?: string;

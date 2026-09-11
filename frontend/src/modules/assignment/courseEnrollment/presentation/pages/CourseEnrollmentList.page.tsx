@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, TextField, InputAdornment, Chip } from '@mui/material';
 import { Add, Search, Edit, Visibility } from '@mui/icons-material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getCourseEnrollments } from '../../infrastructure/courseEnrollment.service';
 import type { CourseEnrollment } from '../../domain/courseEnrollment.interfaces';
@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 
 const CourseEnrollmentList = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>(); // offeringId
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -27,7 +28,7 @@ const CourseEnrollmentList = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getCourseEnrollments({ page, perPage, q });
+      const response = await getCourseEnrollments({ offeringId: id, page, perPage, q });
       setData(response.data);
       setTotal(response.meta?.total || 0);
     } catch (error) {
@@ -89,12 +90,12 @@ const CourseEnrollmentList = () => {
     {
       name: 'Detail',
       icon: <Visibility fontSize="small" />,
-      onClick: (row: CourseEnrollment) => navigate(`/assignment/enrollments/${row.id}`),
+      onClick: (row: CourseEnrollment) => navigate(`/assignment/offerings/${id}/enrollments/${row.id}`),
     },
     {
       name: 'Edit',
       icon: <Edit fontSize="small" />,
-      onClick: (row: CourseEnrollment) => navigate(`/assignment/enrollments/${row.id}/edit`),
+      onClick: (row: CourseEnrollment) => navigate(`/assignment/offerings/${id}/enrollments/${row.id}/edit`),
     },
   ];
 
@@ -112,7 +113,7 @@ const CourseEnrollmentList = () => {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => navigate('/assignment/enrollments/create')}
+          onClick={() => navigate(`/assignment/offerings/${id}/enrollments/create`)}
         >
           Enroll Student
         </Button>

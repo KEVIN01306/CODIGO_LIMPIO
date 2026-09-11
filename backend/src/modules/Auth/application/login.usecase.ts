@@ -10,19 +10,22 @@ interface LoginDTO {
     password: string,
 }
 
+export interface AuthUser {
+    id: string,
+    name: string,
+    email: string,
+    tenantId: string,
+    campusId?: string,
+    permissions: string[],
+    roles: string[],
+    isStudent: boolean,
+    isTeacher: boolean,
+}
+
 interface LoginResponse {
     accessToken: string,
     refreshToken: string,
-    user: {
-        name: string,
-        email: string,
-        tenantId: string,
-        campusId?: string,
-        permissions: string[],
-        roles: string[],
-        isStudent: boolean,
-        isTeacher: boolean,
-    }
+    user: AuthUser,
 }
 
 
@@ -82,6 +85,7 @@ export class LoginUseCase {
             accessToken,
             refreshToken,
             user: {
+                id: user.id,
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
                 tenantId: user.tenantId,

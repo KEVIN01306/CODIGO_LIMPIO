@@ -108,11 +108,11 @@ const CampusList = () => {
           onChange={(e) => setSearchInput(e.target.value)}
           slotProps={{
             input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search fontSize="small" />
-              </InputAdornment>
-            ),
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search fontSize="small" />
+                </InputAdornment>
+              ),
             }
           }}
           sx={{ width: 300, backgroundColor: 'background.paper' }}

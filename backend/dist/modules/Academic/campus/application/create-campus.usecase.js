@@ -1,5 +1,5 @@
-import AppError from "@shared/errors/AppError.js";
-import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
+import AppError from "../../../../shared/errors/AppError.js";
+import { UniqueConstraintError } from "../../../../shared/db/database/errors/UniqueConstraintError.js";
 export class CreateCampusUseCase {
     campusesRepository;
     createAuditLogUseCase;

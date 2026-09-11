@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
-import { Add, Search, Edit, Visibility } from '@mui/icons-material';
+import { Add, Search, Edit, Visibility, GroupOutlined, AssignmentOutlined } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getCourseOfferings } from '../../infrastructure/courseOffering.service';
@@ -76,12 +76,21 @@ const CourseOfferingList = () => {
       format: (_: any, row: CourseOffering) => row.teacher?.user ? `${row.teacher.user.firstName} ${row.teacher.user.lastName}` : 'Unassigned'
     }
   ];
-
   const actions = [
     {
       name: 'Detail',
       icon: <Visibility fontSize="small" />,
       onClick: (row: CourseOffering) => navigate(`/assignment/offerings/${row.id}`),
+    },
+    {
+      name: 'Manage Enrollments',
+      icon: <GroupOutlined fontSize="small" />,
+      onClick: (row: CourseOffering) => navigate(`/assignment/offerings/${row.id}/enrollments`),
+    },
+    {
+      name: 'Manage Assessments',
+      icon: <AssignmentOutlined fontSize="small" />,
+      onClick: (row: CourseOffering) => navigate(`/assignment/offerings/${row.id}/assessments`),
     },
     {
       name: 'Edit',

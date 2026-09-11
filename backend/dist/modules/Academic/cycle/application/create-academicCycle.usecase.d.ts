@@ -1,7 +1,7 @@
 import type { AcademicCyclesRepository } from "../../cycle/domain/academicCycle.repository.js";
 import type { CampusesRepository } from "../../campus/domain/campus.repository.js";
 import type { GetAcademicCycle } from "../../cycle/domain/academicCycle.entity.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 interface CreateAcademicCycleRequest {
     tenantId: string;
     campusId: string;

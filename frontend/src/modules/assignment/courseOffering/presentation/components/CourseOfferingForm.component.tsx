@@ -36,7 +36,7 @@ const CourseOfferingForm: React.FC<CourseOfferingFormProps> = ({ initialData }) 
           getCampuses({ page: 1, perPage: 100 }),
           getCourses({ page: 1, perPage: 500 }),
           getAcademicCycles({ page: 1, perPage: 100 }),
-          api.get('/profiles/teachers')
+          api.get('/users/teachers')
         ]);
         setCampuses(campusesRes.data);
         setCourses(coursesRes.data);
@@ -56,7 +56,7 @@ const CourseOfferingForm: React.FC<CourseOfferingFormProps> = ({ initialData }) 
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<CourseOfferingFormValues>({
-    resolver: zodResolver(courseOfferingSchema),
+    resolver: zodResolver(courseOfferingSchema) as any,
     defaultValues: {
       campusId: initialData?.campusId || '',
       courseId: initialData?.courseId || '',
@@ -96,7 +96,7 @@ const CourseOfferingForm: React.FC<CourseOfferingFormProps> = ({ initialData }) 
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
+    <Box component="form" onSubmit={handleSubmit(onSubmit as any)} noValidate sx={{ mt: 1 }}>
       {globalError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {globalError}

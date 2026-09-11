@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import BaseController from "@presentation/base.controller.js";
+import BaseController from "../../../../presentation/base.controller.js";
 import type { CreateCohortUseCase } from "../../cohort/application/create-cohort.usecase.js";
 import type { UpdateCohortUseCase } from "../../cohort/application/update-cohort.usecase.js";
 import type { ListCohortsUseCase } from "../../cohort/application/list-cohort.usecase.js";

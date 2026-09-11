@@ -1,4 +1,4 @@
-import { CampusMapper } from "@modules/Academic/campus/infrastructure/mappers/campus.mapper.js";
+import { CampusMapper } from "../../../../Academic/campus/infrastructure/mappers/campus.mapper.js";
 export class AcademicCycleMapper {
     static toDomain(prismaAcademicCycle) {
         return {

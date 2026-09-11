@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Breadcrumbs, Link, CircularProgress, Grid, Divider, Button, Chip } from '@mui/material';
 import { Link as RouterLink, useParams, useNavigate } from 'react-router-dom';
 import { getCourseEnrollmentById } from '../../infrastructure/courseEnrollment.service';
@@ -7,16 +7,16 @@ import { toast } from 'react-toastify';
 import { Edit } from '@mui/icons-material';
 
 const CourseEnrollmentDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, enrollmentId } = useParams<{ id: string; enrollmentId: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<CourseEnrollment | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      fetchData(id);
+    if (enrollmentId) {
+      fetchData(enrollmentId);
     }
-  }, [id]);
+  }, [enrollmentId]);
 
   const fetchData = async (enrollmentId: string) => {
     try {
@@ -24,7 +24,7 @@ const CourseEnrollmentDetail = () => {
       setData(enrollment);
     } catch (error) {
       toast.error('Failed to load course enrollment');
-      navigate('/assignment/enrollments');
+      navigate(`/assignment/offerings/${id}/enrollments`);
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ const CourseEnrollmentDetail = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 1000, margin: '0 auto' }}>
       <Breadcrumbs sx={{ mb: 2 }}>
-        <Link component={RouterLink} color="inherit" to="/assignment/enrollments">
+        <Link component={RouterLink} color="inherit" to={`/assignment/offerings/${id}/enrollments`}>
           Course Enrollments
         </Link>
         <Typography color="text.primary">Detail</Typography>
@@ -56,7 +56,7 @@ const CourseEnrollmentDetail = () => {
         <Button
           variant="contained"
           startIcon={<Edit />}
-          onClick={() => navigate(`/assignment/enrollments/${data.id}/edit`)}
+          onClick={() => navigate(`/assignment/offerings/${id}/enrollments/${data.id}/edit`)}
         >
           Edit
         </Button>

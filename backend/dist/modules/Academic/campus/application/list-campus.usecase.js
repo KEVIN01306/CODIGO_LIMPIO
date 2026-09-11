@@ -1,4 +1,4 @@
-import AppError from "@shared/errors/AppError.js";
+import AppError from "../../../../shared/errors/AppError.js";
 export class ListCampusesUseCase {
     campusesRepository;
     constructor(campusesRepository) {

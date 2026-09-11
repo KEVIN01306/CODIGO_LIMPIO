@@ -1,5 +1,5 @@
 import type { CoursesRepository } from "../../course/domain/course.repository.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 export declare class DeleteCourseUseCase {
     private readonly coursesRepository;
     private readonly createAuditLogUseCase;

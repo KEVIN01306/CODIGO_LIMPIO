@@ -299,6 +299,13 @@ model Submission {
   testOutput Json? // Reporte de tests unitarios (Karma, Jest, JUnit)
   aiFeedback Json? // Rúbrica y sugerencias socráticas / formativas
 
+  // --- ALMACENAMIENTO DE ARCHIVOS ---
+  // Para borradores activos y proyectos medianos (JSON: { "path/file.ts": "content" })
+  codeSnapshot Json? @map("code_snapshot")
+
+  // Para la entrega final empaquetada (URL en S3 / MinIO / almacenamiento local)
+  archiveUrl String? @map("archive_url")
+
   assessment Assessment     @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 

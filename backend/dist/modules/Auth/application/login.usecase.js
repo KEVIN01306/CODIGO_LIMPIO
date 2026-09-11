@@ -1,4 +1,4 @@
-import AppError from "@shared/errors/AppError.js";
+import AppError from "../../../shared/errors/AppError.js";
 export class LoginUseCase {
     authRepository;
     jwtProvider;
@@ -39,6 +39,7 @@ export class LoginUseCase {
             accessToken,
             refreshToken,
             user: {
+                id: user.id,
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
                 tenantId: user.tenantId,

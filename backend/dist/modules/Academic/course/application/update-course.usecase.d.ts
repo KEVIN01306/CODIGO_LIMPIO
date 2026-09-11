@@ -1,7 +1,7 @@
 import type { CoursesRepository } from "../../course/domain/course.repository.js";
 import type { AcademicProgramsRepository } from "../../program/domain/academicProgram.repository.js";
 import type { GetCourse } from "../../course/domain/course.entity.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 interface UpdateCourseRequest {
     programId?: string;
     code?: string;

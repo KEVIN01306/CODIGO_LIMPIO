@@ -100,6 +100,16 @@ async function main() {
         { action: 'courseEnrollments:create', description: 'Create course enrollments' },
         { action: 'courseEnrollments:update', description: 'Update course enrollments' },
         { action: 'courseEnrollments:delete', description: 'Delete course enrollments' },
+        // Users Management (Teachers and Students)
+        { action: 'users:read', description: 'Read users' },
+        { action: 'users:create', description: 'Create users' },
+        { action: 'users:update', description: 'Update users' },
+        { action: 'users:delete', description: 'Delete users' },
+        // Assessments
+        { action: 'assessments:read', description: 'Read assessments' },
+        { action: 'assessments:create', description: 'Create assessments' },
+        { action: 'assessments:update', description: 'Update assessments' },
+        { action: 'assessments:delete', description: 'Delete assessments' },
     ];
 
     for (const perm of permissionsList) {
@@ -156,14 +166,16 @@ async function main() {
     for (const perm of permissionsList) {
         const dbPerm = await prisma.permission.findUnique({ where: { action: perm.action } });
         if (dbPerm) {
-            // Teacher gets all
-            await prisma.rolePermission.upsert({
-                where: { roleId_permissionId: { roleId: teacherRole.id, permissionId: dbPerm.id } },
-                update: {}, create: { roleId: teacherRole.id, permissionId: dbPerm.id }
-            });
+            // Teacher gets all assessments and academic read permissions
+            if (perm.action.startsWith('assessments:') || perm.action.endsWith(':read')) {
+                await prisma.rolePermission.upsert({
+                    where: { roleId_permissionId: { roleId: teacherRole.id, permissionId: dbPerm.id } },
+                    update: {}, create: { roleId: teacherRole.id, permissionId: dbPerm.id }
+                });
+            }
 
-            // Student gets only read
-            if (perm.action.includes('read')) {
+            // Student gets assessments:read and courseEnrollments:read
+            if (perm.action === 'assessments:read' || perm.action === 'courseEnrollments:read') {
                 await prisma.rolePermission.upsert({
                     where: { roleId_permissionId: { roleId: studentRole.id, permissionId: dbPerm.id } },
                     update: {}, create: { roleId: studentRole.id, permissionId: dbPerm.id }

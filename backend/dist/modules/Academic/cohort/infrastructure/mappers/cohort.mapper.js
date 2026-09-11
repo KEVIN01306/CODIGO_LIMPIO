@@ -1,5 +1,5 @@
-import { CampusMapper } from "@modules/Academic/campus/infrastructure/mappers/campus.mapper.js";
-import { AcademicProgramMapper } from "@modules/Academic/program/infrastructure/mappers/academicProgram.mapper.js";
+import { CampusMapper } from "../../../../Academic/campus/infrastructure/mappers/campus.mapper.js";
+import { AcademicProgramMapper } from "../../../../Academic/program/infrastructure/mappers/academicProgram.mapper.js";
 export class CohortMapper {
     static toDomain(prismaCohort) {
         return {

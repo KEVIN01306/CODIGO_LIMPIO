@@ -1,0 +1,30 @@
+import { Router } from "express";
+import { TeachersController } from "./teachers.controller.js";
+import { AuthMiddleware } from "../../../app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "../../../app/middleware/Validated.middleware.js";
+import { CreateTeacherSchema, UpdateTeacherSchema } from "./validators/teachers.schemas.js";
+// DI injection
+import { PrismaClient } from "@prisma/client";
+import { PrismaTeacherRepository } from "../infrastructure/prisma-teacher.repository.js";
+import { CreateTeacherUseCase } from "../application/create-teacher.usecase.js";
+import { UpdateTeacherUseCase } from "../application/update-teacher.usecase.js";
+import { ListTeachersUseCase } from "../application/list-teacher.usecase.js";
+import { GetTeacherUseCase } from "../application/get-teacher.usecase.js";
+import { DeleteTeacherUseCase } from "../application/delete-teacher.usecase.js";
+import { Argon2HashProvider } from "../../../shared/infrastructure/argon2-hash.provider.js";
+import { createAuditLogUseCase } from "../../Audit/audit.module.js";
+const prisma = new PrismaClient();
+const hashProvider = new Argon2HashProvider();
+const repository = new PrismaTeacherRepository(prisma);
+const controller = new TeachersController(new CreateTeacherUseCase(hashProvider, createAuditLogUseCase), new UpdateTeacherUseCase(repository, createAuditLogUseCase), new ListTeachersUseCase(repository), new GetTeacherUseCase(repository), new DeleteTeacherUseCase(repository, createAuditLogUseCase));
+const router = Router();
+const authMiddleware = new AuthMiddleware();
+const validatedMiddleware = new ValidatedMiddleware();
+router.use(authMiddleware.routeProtect);
+router.get("/", controller.list);
+router.get("/:id", controller.getById);
+router.post("/", validatedMiddleware.validateBody(CreateTeacherSchema), controller.create);
+router.put("/:id", validatedMiddleware.validateBody(UpdateTeacherSchema), controller.update);
+router.delete("/:id", controller.delete);
+export default router;
+//# sourceMappingURL=teachers.routes.js.map

@@ -1,8 +1,8 @@
-import type { CohortsRepository } from "@modules/Academic/cohort/domain/cohort.repository.js";
-import type { CampusesRepository } from "@modules/Academic/campus/domain/campus.repository.js";
-import type { AcademicProgramsRepository } from "@modules/Academic/program/domain/academicProgram.repository.js";
-import type { GetCohort } from "@modules/Academic/cohort/domain/cohort.entity.js";
-import type { CreateAuditLogUseCase } from "@modules/Audit/application/create-audit-log.usecase.js";
+import type { CohortsRepository } from "../../../Academic/cohort/domain/cohort.repository.js";
+import type { CampusesRepository } from "../../../Academic/campus/domain/campus.repository.js";
+import type { AcademicProgramsRepository } from "../../../Academic/program/domain/academicProgram.repository.js";
+import type { GetCohort } from "../../../Academic/cohort/domain/cohort.entity.js";
+import type { CreateAuditLogUseCase } from "../../../Audit/application/create-audit-log.usecase.js";
 interface UpdateCohortRequest {
     campusId?: string;
     programId?: string;

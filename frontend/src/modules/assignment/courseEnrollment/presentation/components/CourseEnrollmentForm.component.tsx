@@ -5,32 +5,27 @@ import { TextField, Button, Box, Alert, CircularProgress, Autocomplete, MenuItem
 import { courseEnrollmentSchema } from '../../domain/courseEnrollment.schema';
 import type { CourseEnrollmentFormValues, CourseEnrollment, StudentProfile } from '../../domain/courseEnrollment.interfaces';
 import { createCourseEnrollment, updateCourseEnrollment } from '../../infrastructure/courseEnrollment.service';
-import { getCourseOfferings } from '../../../../assignment/courseOffering/infrastructure/courseOffering.service';
-import type { CourseOffering } from '../../../../assignment/courseOffering/domain/courseOffering.interfaces';
+
 import api from '../../../../../core/api/axios.config';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 interface CourseEnrollmentFormProps {
   initialData?: CourseEnrollment;
+  offeringId?: string;
 }
 
-const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData }) => {
+const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData, offeringId }) => {
   const navigate = useNavigate();
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  const [offerings, setOfferings] = useState<CourseOffering[]>([]);
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     const fetchRelations = async () => {
       try {
-        const [offeringsRes, studentsRes] = await Promise.all([
-          getCourseOfferings({ page: 1, perPage: 100 }),
-          api.get('/profiles/students')
-        ]);
-        setOfferings(offeringsRes.data);
+        const studentsRes = await api.get('/users/students');
         setStudents(studentsRes.data.data);
       } catch (error) {
         toast.error('Failed to load related data');
@@ -48,7 +43,7 @@ const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData
   } = useForm<CourseEnrollmentFormValues>({
     resolver: zodResolver(courseEnrollmentSchema),
     defaultValues: {
-      offeringId: initialData?.offeringId || '',
+      offeringId: initialData?.offeringId || offeringId || '',
       studentId: initialData?.studentId || '',
       status: initialData?.status || 'ENROLLED',
       finalGrade: initialData?.finalGrade || null,
@@ -59,8 +54,8 @@ const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData
     setGlobalError(null);
     try {
       const payload = {
-          ...values,
-          finalGrade: values.finalGrade === null ? undefined : Number(values.finalGrade)
+        ...values,
+        finalGrade: values.finalGrade === null ? undefined : Number(values.finalGrade)
       };
 
       if (initialData) {
@@ -71,7 +66,7 @@ const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData
         await createCourseEnrollment(payload);
         toast.success('Course Enrollment created successfully');
       }
-      navigate('/assignment/enrollments');
+      navigate(`/assignment/offerings/${offeringId}/enrollments`);
     } catch (error: any) {
       setGlobalError(error.response?.data?.message || 'An error occurred while saving the enrollment.');
     }
@@ -93,24 +88,6 @@ const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData
         </Alert>
       )}
 
-      {/* When editing, offering and student usually shouldn't change, but we leave them editable for now or we could disable them */}
-      <Controller
-        name="offeringId"
-        control={control}
-        render={({ field, fieldState: { error } }) => (
-          <Autocomplete
-            options={offerings}
-            getOptionLabel={(option) => `${option.course?.name || ''} - Sec: ${option.section} (${option.cycle?.name})`}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={offerings.find(o => o.id === field.value) || null}
-            onChange={(_, newValue) => field.onChange(newValue ? newValue.id : '')}
-            disabled={!!initialData}
-            renderInput={(params) => (
-              <TextField {...params} label="Course Offering" margin="normal" required fullWidth error={!!error} helperText={error?.message} />
-            )}
-          />
-        )}
-      />
 
       <Controller
         name="studentId"
@@ -178,7 +155,7 @@ const CourseEnrollmentForm: React.FC<CourseEnrollmentFormProps> = ({ initialData
           variant="outlined"
           color="secondary"
           disabled={isSubmitting}
-          onClick={() => navigate('/assignment/enrollments')}
+          onClick={() => navigate(`/assignment/offerings/${offeringId}/enrollments`)}
         >
           Cancel
         </Button>

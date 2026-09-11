@@ -1,5 +1,5 @@
-import prisma from "@infrastructure/config/prisma/prisma.config.js";
-import AppError from "@shared/errors/AppError.js";
+import prisma from "../../../infrastructure/config/prisma/prisma.config.js";
+import AppError from "../../../shared/errors/AppError.js";
 export class GetDashboardSummaryUseCase {
     async execute(userId) {
         const user = await prisma.user.findUnique({

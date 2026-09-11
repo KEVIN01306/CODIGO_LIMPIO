@@ -1,4 +1,4 @@
-import { PrismaErrorMapper } from "@shared/db/database/prisma/PrismaErrorMapper.js";
+import { PrismaErrorMapper } from "../../../../shared/db/database/prisma/PrismaErrorMapper.js";
 import { CampusMapper } from "./mappers/campus.mapper.js";
 export class PrismaCampusesRepository {
     prisma;

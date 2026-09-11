@@ -65,6 +65,7 @@ export class PrismaCourseOfferingsRepository implements CourseOfferingRepository
         if (filters?.courseId) where.courseId = filters.courseId;
         if (filters?.cycleId) where.cycleId = filters.cycleId;
         if (filters?.teacherId) where.teacherId = filters.teacherId;
+        if (filters?.userId) where.teacher = { userId: filters.userId };
 
         const [total, records] = await Promise.all([
             this.prisma.courseOffering.count({ where }),

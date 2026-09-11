@@ -1,10 +1,10 @@
 import api from '../../../../core/api/axios.config';
 import type { CourseEnrollment, CreateCourseEnrollmentDTO, UpdateCourseEnrollmentDTO } from '../domain/courseEnrollment.interfaces';
-import type { PaginatedResponse, PaginationParams } from '../../../../shared/domain/pagination.interfaces';
+import type { PaginatedResponse } from '../../../../core/api/interfaces/api-response.interface';
 
 const API_URL = '/assignments/enrollments';
 
-export const getCourseEnrollments = async (params?: PaginationParams): Promise<PaginatedResponse<CourseEnrollment>> => {
+export const getCourseEnrollments = async (params?: { offeringId?: string; page?: number; perPage?: number; q?: string }): Promise<PaginatedResponse<CourseEnrollment>> => {
   const response = await api.get(API_URL, { params });
   return response.data;
 };

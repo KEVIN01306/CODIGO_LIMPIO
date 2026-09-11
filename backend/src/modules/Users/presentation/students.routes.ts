@@ -1,0 +1,43 @@
+
+import { Router } from "express";
+import { StudentsController } from "./students.controller.js";
+import { AuthMiddleware } from "../../../app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "../../../app/middleware/Validated.middleware.js";
+import { CreateStudentSchema, UpdateStudentSchema } from "./validators/students.schemas.js";
+
+// DI injection
+import { PrismaClient } from "@prisma/client";
+import { PrismaStudentRepository } from "../infrastructure/prisma-student.repository.js";
+import { CreateStudentUseCase } from "../application/create-student.usecase.js";
+import { UpdateStudentUseCase } from "../application/update-student.usecase.js";
+import { ListStudentsUseCase } from "../application/list-student.usecase.js";
+import { GetStudentUseCase } from "../application/get-student.usecase.js";
+import { DeleteStudentUseCase } from "../application/delete-student.usecase.js";
+import { Argon2HashProvider } from "@shared/infrastructure/argon2-hash.provider.js";
+import { createAuditLogUseCase } from "../../Audit/audit.module.js";
+
+const prisma = new PrismaClient();
+const hashProvider = new Argon2HashProvider();
+const repository = new PrismaStudentRepository(prisma);
+
+const controller = new StudentsController(
+    new CreateStudentUseCase(hashProvider, createAuditLogUseCase),
+    new UpdateStudentUseCase(repository, createAuditLogUseCase),
+    new ListStudentsUseCase(repository),
+    new GetStudentUseCase(repository),
+    new DeleteStudentUseCase(repository, createAuditLogUseCase)
+);
+
+const router = Router();
+const authMiddleware = new AuthMiddleware();
+const validatedMiddleware = new ValidatedMiddleware();
+
+router.use(authMiddleware.routeProtect);
+
+router.get("/", controller.list);
+router.get("/:id", controller.getById);
+router.post("/", validatedMiddleware.validateBody(CreateStudentSchema), controller.create);
+router.put("/:id", validatedMiddleware.validateBody(UpdateStudentSchema), controller.update);
+router.delete("/:id", controller.delete);
+
+export default router;

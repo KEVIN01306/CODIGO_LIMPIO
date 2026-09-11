@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import AppError from '@shared/errors/AppError.js';
+import AppError from '../../../shared/errors/AppError.js';
 class JwtProvider {
     secret;
     issuer;
