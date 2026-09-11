@@ -21,7 +21,9 @@ export class PrismaAuthRespository {
                             }
                         }
                     }
-                }
+                },
+                student: { select: { campusId: true } },
+                teacher: { select: { campusId: true } }
             }
         });
         if (!user)
@@ -45,7 +47,9 @@ export class PrismaAuthRespository {
                             }
                         }
                     }
-                }
+                },
+                student: { select: { campusId: true } },
+                teacher: { select: { campusId: true } }
             }
         });
         if (!user)

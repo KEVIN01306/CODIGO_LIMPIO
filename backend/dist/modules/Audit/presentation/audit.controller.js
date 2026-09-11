@@ -1,5 +1,5 @@
-import ResponseHttp from "../../../app/http/response.http.js";
-import BaseController from "../../../presentation/base.controller.js";
+import ResponseHttp from "@app/http/response.http.js";
+import BaseController from "@presentation/base.controller.js";
 export class AuditController extends BaseController {
     listAuditLogsUseCase;
     constructor(listAuditLogsUseCase) {

@@ -1,5 +1,5 @@
-import ResponseHttp from "../../../app/http/response.http.js";
-import AppError from "../../../shared/errors/AppError.js";
+import ResponseHttp from "@app/http/response.http.js";
+import AppError from "@shared/errors/AppError.js";
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

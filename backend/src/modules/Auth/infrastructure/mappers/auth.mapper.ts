@@ -7,6 +7,8 @@ export class AuthMapper {
 
         return {
             id: user.id,
+            tenantId: user.tenantId,
+            campusId: user.student?.campusId || user.teacher?.campusId || undefined,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
@@ -15,7 +17,9 @@ export class AuthMapper {
             roles: user.userRoles?.map((ur: any) => ur.role?.name) || [],
             permissions: user.userRoles?.flatMap((ur: any) => 
                 ur.role?.rolePermissions?.map((rp: any) => rp.permission?.action) || []
-            ) || []
+            ) || [],
+            isStudent: !!user.student,
+            isTeacher: !!user.teacher
         };
     }
 }

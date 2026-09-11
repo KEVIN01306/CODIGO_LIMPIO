@@ -1,0 +1,22 @@
+import { Router } from "express";
+import { academicProgramController, campusController } from "../academic.module.js";
+import { AuthMiddleware } from "../../../app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "../../../app/middleware/Validated.middleware.js";
+import { CreateAcademicProgramSchema, UpdateAcademicProgramSchema, AcademicProgramIdSchema } from "./academicProgram.schemas.js";
+import { CreateCampusSchema, UpdateCampusSchema, CampusIdSchema } from "./campus.schemas.js";
+const router = Router();
+const authMiddleware = new AuthMiddleware();
+const validatedMiddleware = new ValidatedMiddleware();
+router.use(authMiddleware.routeProtect);
+router.get("/campuses", campusController.list);
+router.get("/campuses/:id", validatedMiddleware.validateParams(CampusIdSchema), campusController.getById);
+router.post("/campuses", validatedMiddleware.validateBody(CreateCampusSchema), campusController.create);
+router.put("/campuses/:id", validatedMiddleware.validateParams(CampusIdSchema), validatedMiddleware.validateBody(UpdateCampusSchema), campusController.update);
+router.delete("/campuses/:id", validatedMiddleware.validateParams(CampusIdSchema), campusController.delete);
+router.get("/programs", academicProgramController.list);
+router.get("/programs/:id", validatedMiddleware.validateParams(AcademicProgramIdSchema), academicProgramController.getById);
+router.post("/programs", validatedMiddleware.validateBody(CreateAcademicProgramSchema), academicProgramController.create);
+router.put("/programs/:id", validatedMiddleware.validateParams(AcademicProgramIdSchema), validatedMiddleware.validateBody(UpdateAcademicProgramSchema), academicProgramController.update);
+router.delete("/programs/:id", validatedMiddleware.validateParams(AcademicProgramIdSchema), academicProgramController.delete);
+export default router;
+//# sourceMappingURL=academic.routes.js.map

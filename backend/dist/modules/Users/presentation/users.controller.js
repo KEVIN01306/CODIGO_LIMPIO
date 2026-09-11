@@ -1,5 +1,5 @@
-import ResponseHttp from "../../../app/http/response.http.js";
-import BaseController from "../../../presentation/base.controller.js";
+import ResponseHttp from "@app/http/response.http.js";
+import BaseController from "@presentation/base.controller.js";
 export class UsersController extends BaseController {
     createUserUseCase;
     updateUserUseCase;
@@ -19,7 +19,8 @@ export class UsersController extends BaseController {
     create = async (req, res, next) => {
         try {
             const data = req.body;
-            const user = await this.createUserUseCase.execute(data);
+            const tenantId = req.user.tenantId;
+            const user = await this.createUserUseCase.execute({ ...data, tenantId });
             return res.status(201).json(ResponseHttp.success("User created successfully", user));
         }
         catch (error) {

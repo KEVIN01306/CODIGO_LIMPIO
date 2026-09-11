@@ -1,0 +1,118 @@
+import { PrismaClient } from "@prisma/client";
+import { PrismaAcademicProgramsRepository } from "./program/infrastructure/prisma-academicProgram.repository.js";
+import { CreateAcademicProgramUseCase } from "./program/application/create-academicProgram.usecase.js";
+import { UpdateAcademicProgramUseCase } from "./program/application/update-academicProgram.usecase.js";
+import { ListAcademicProgramsUseCase } from "./program/application/list-academicProgram.usecase.js";
+import { GetAcademicProgramUseCase } from "./program/application/get-academicProgram.usecase.js";
+import { DeleteAcademicProgramUseCase } from "./program/application/delete-academicProgram.usecase.js";
+import { AcademicProgramController } from "./program/presentation/academicProgram.controller.js";
+import { PrismaCampusesRepository } from "./campus/infrastructure/prisma-campus.repository.js";
+import { CreateCampusUseCase } from "./campus/application/create-campus.usecase.js";
+import { UpdateCampusUseCase } from "./campus/application/update-campus.usecase.js";
+import { ListCampusesUseCase } from "./campus/application/list-campus.usecase.js";
+import { GetCampusUseCase } from "./campus/application/get-campus.usecase.js";
+import { DeleteCampusUseCase } from "./campus/application/delete-campus.usecase.js";
+import { CampusController } from "./campus/presentation/campus.controller.js";
+import { createAuditLogUseCase } from "../Audit/audit.module.js";
+
+import { PrismaCohortsRepository } from "./cohort/infrastructure/prisma-cohort.repository.js";
+import { CreateCohortUseCase } from "./cohort/application/create-cohort.usecase.js";
+import { UpdateCohortUseCase } from "./cohort/application/update-cohort.usecase.js";
+import { ListCohortsUseCase } from "./cohort/application/list-cohort.usecase.js";
+import { GetCohortUseCase } from "./cohort/application/get-cohort.usecase.js";
+import { DeleteCohortUseCase } from "./cohort/application/delete-cohort.usecase.js";
+import { CohortController } from "./cohort/presentation/cohort.controller.js";
+
+import { PrismaAcademicCyclesRepository } from "./cycle/infrastructure/prisma-academicCycle.repository.js";
+import { CreateAcademicCycleUseCase } from "./cycle/application/create-academicCycle.usecase.js";
+import { UpdateAcademicCycleUseCase } from "./cycle/application/update-academicCycle.usecase.js";
+import { ListAcademicCyclesUseCase } from "./cycle/application/list-academicCycle.usecase.js";
+import { GetAcademicCycleUseCase } from "./cycle/application/get-academicCycle.usecase.js";
+import { DeleteAcademicCycleUseCase } from "./cycle/application/delete-academicCycle.usecase.js";
+import { AcademicCycleController } from "./cycle/presentation/academicCycle.controller.js";
+
+import { PrismaCoursesRepository } from "./course/infrastructure/prisma-course.repository.js";
+import { CreateCourseUseCase } from "./course/application/create-course.usecase.js";
+import { UpdateCourseUseCase } from "./course/application/update-course.usecase.js";
+import { ListCoursesUseCase } from "./course/application/list-course.usecase.js";
+import { GetCourseUseCase } from "./course/application/get-course.usecase.js";
+import { DeleteCourseUseCase } from "./course/application/delete-course.usecase.js";
+import { CourseController } from "./course/presentation/course.controller.js";
+
+const prisma = new PrismaClient();
+
+export const academicProgramsRepository = new PrismaAcademicProgramsRepository(prisma);
+export const campusesRepository = new PrismaCampusesRepository(prisma);
+export const cohortsRepository = new PrismaCohortsRepository(prisma);
+export const academicCyclesRepository = new PrismaAcademicCyclesRepository(prisma);
+export const coursesRepository = new PrismaCoursesRepository(prisma);
+
+export const createAcademicProgramUseCase = new CreateAcademicProgramUseCase(academicProgramsRepository, createAuditLogUseCase);
+export const updateAcademicProgramUseCase = new UpdateAcademicProgramUseCase(academicProgramsRepository, createAuditLogUseCase);
+export const listAcademicProgramsUseCase = new ListAcademicProgramsUseCase(academicProgramsRepository);
+export const getAcademicProgramUseCase = new GetAcademicProgramUseCase(academicProgramsRepository);
+export const deleteAcademicProgramUseCase = new DeleteAcademicProgramUseCase(academicProgramsRepository, createAuditLogUseCase);
+
+export const createCampusUseCase = new CreateCampusUseCase(campusesRepository, createAuditLogUseCase);
+export const updateCampusUseCase = new UpdateCampusUseCase(campusesRepository, createAuditLogUseCase);
+export const listCampusesUseCase = new ListCampusesUseCase(campusesRepository);
+export const getCampusUseCase = new GetCampusUseCase(campusesRepository);
+export const deleteCampusUseCase = new DeleteCampusUseCase(campusesRepository, createAuditLogUseCase);
+
+export const createCohortUseCase = new CreateCohortUseCase(cohortsRepository, campusesRepository, academicProgramsRepository, createAuditLogUseCase);
+export const updateCohortUseCase = new UpdateCohortUseCase(cohortsRepository, campusesRepository, academicProgramsRepository, createAuditLogUseCase);
+export const listCohortsUseCase = new ListCohortsUseCase(cohortsRepository, campusesRepository);
+export const getCohortUseCase = new GetCohortUseCase(cohortsRepository, campusesRepository);
+export const deleteCohortUseCase = new DeleteCohortUseCase(cohortsRepository, campusesRepository, createAuditLogUseCase);
+
+export const createAcademicCycleUseCase = new CreateAcademicCycleUseCase(academicCyclesRepository, campusesRepository, createAuditLogUseCase);
+export const updateAcademicCycleUseCase = new UpdateAcademicCycleUseCase(academicCyclesRepository, campusesRepository, createAuditLogUseCase);
+export const listAcademicCyclesUseCase = new ListAcademicCyclesUseCase(academicCyclesRepository);
+export const getAcademicCycleUseCase = new GetAcademicCycleUseCase(academicCyclesRepository);
+export const deleteAcademicCycleUseCase = new DeleteAcademicCycleUseCase(academicCyclesRepository, createAuditLogUseCase);
+
+export const createCourseUseCase = new CreateCourseUseCase(coursesRepository, academicProgramsRepository, createAuditLogUseCase);
+export const updateCourseUseCase = new UpdateCourseUseCase(coursesRepository, academicProgramsRepository, createAuditLogUseCase);
+export const listCoursesUseCase = new ListCoursesUseCase(coursesRepository);
+export const getCourseUseCase = new GetCourseUseCase(coursesRepository);
+export const deleteCourseUseCase = new DeleteCourseUseCase(coursesRepository, createAuditLogUseCase);
+
+export const academicProgramController = new AcademicProgramController(
+    createAcademicProgramUseCase,
+    updateAcademicProgramUseCase,
+    listAcademicProgramsUseCase,
+    getAcademicProgramUseCase,
+    deleteAcademicProgramUseCase
+);
+
+export const campusController = new CampusController(
+    createCampusUseCase,
+    updateCampusUseCase,
+    listCampusesUseCase,
+    getCampusUseCase,
+    deleteCampusUseCase
+);
+
+export const cohortController = new CohortController(
+    createCohortUseCase,
+    updateCohortUseCase,
+    listCohortsUseCase,
+    getCohortUseCase,
+    deleteCohortUseCase
+);
+
+export const academicCycleController = new AcademicCycleController(
+    createAcademicCycleUseCase,
+    updateAcademicCycleUseCase,
+    listAcademicCyclesUseCase,
+    getAcademicCycleUseCase,
+    deleteAcademicCycleUseCase
+);
+
+export const courseController = new CourseController(
+    createCourseUseCase,
+    updateCourseUseCase,
+    listCoursesUseCase,
+    getCourseUseCase,
+    deleteCourseUseCase
+);

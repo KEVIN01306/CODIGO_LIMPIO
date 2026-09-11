@@ -26,6 +26,8 @@ export class AuthMiddleware {
 
             res.locals.user = {
                 id: payload.sub,
+                tenantId: payload.tenantId,
+                campusId: payload.campusId,
                 roles: payload.roles,
                 permissions: payload.permissions,
             };

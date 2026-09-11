@@ -4,6 +4,8 @@ interface GetProfileResponse {
     email: string;
     roles: string[];
     permissions: string[];
+    isStudent: boolean;
+    isTeacher: boolean;
 }
 export declare class GetProfileUseCase {
     private readonly authRepository;

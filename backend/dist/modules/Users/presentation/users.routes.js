@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { usersController } from "../users.module.js";
-import { AuthMiddleware } from "../../../app/middleware/Auth.middleware.js";
-import { ValidatedMiddleware } from "../../../app/middleware/Validated.middleware.js";
+import { AuthMiddleware } from "@app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "@app/middleware/Validated.middleware.js";
 import { CreateUserSchema, UpdateUserSchema, UserIdSchema } from "./users.schemas.js";
 const router = Router();
 const authMiddleware = new AuthMiddleware();

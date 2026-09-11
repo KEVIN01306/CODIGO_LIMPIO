@@ -1,4 +1,4 @@
-import AppError from "../../../shared/errors/AppError.js";
+import AppError from "@shared/errors/AppError.js";
 export class GetProfileUseCase {
     authRepository;
     constructor(authRepository) {
@@ -14,6 +14,8 @@ export class GetProfileUseCase {
             email: user.email,
             roles: user.roles,
             permissions: user.permissions,
+            isStudent: user.isStudent,
+            isTeacher: user.isTeacher,
         };
     }
 }

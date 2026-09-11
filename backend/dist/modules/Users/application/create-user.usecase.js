@@ -1,5 +1,5 @@
-import AppError from "../../../shared/errors/AppError.js";
-import { UniqueConstraintError } from "../../../shared/db/database/errors/UniqueConstraintError.js";
+import AppError from "@shared/errors/AppError.js";
+import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
 export class CreateUserUseCase {
     usersRepository;
     hashProvider;
@@ -20,7 +20,8 @@ export class CreateUserUseCase {
                 email: data.email,
                 passwordHash,
                 firstName: data.firstName,
-                lastName: data.lastName
+                lastName: data.lastName,
+                tenantId: data.tenantId
             });
             await this.createAuditLogUseCase.execute({
                 action: 'CREATE',

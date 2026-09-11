@@ -23,7 +23,8 @@ export class UsersController extends BaseController {
     create = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const data = req.body;
-            const user = await this.createUserUseCase.execute(data);
+            const tenantId = (req as any).user.tenantId;
+            const user = await this.createUserUseCase.execute({ ...data, tenantId });
             return res.status(201).json(ResponseHttp.success("User created successfully", user));
         } catch (error) {
             next(error);

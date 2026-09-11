@@ -10,6 +10,7 @@ interface CreateUserRequest {
     passwordRaw: string;
     firstName: string;
     lastName: string;
+    tenantId: string;
 }
 
 export class CreateUserUseCase {
@@ -32,7 +33,8 @@ export class CreateUserUseCase {
                 email: data.email,
                 passwordHash,
                 firstName: data.firstName,
-                lastName: data.lastName
+                lastName: data.lastName,
+                tenantId: data.tenantId
             });
 
             await this.createAuditLogUseCase.execute({

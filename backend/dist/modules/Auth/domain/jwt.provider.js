@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import AppError from '../../../shared/errors/AppError.js';
+import AppError from '@shared/errors/AppError.js';
 class JwtProvider {
     secret;
     issuer;
@@ -12,8 +12,8 @@ class JwtProvider {
         this.issuer = process.env.JWT_ISS;
         this.audience = process.env.JWT_AUD;
     }
-    async generateTokens(userId, roles, permissions) {
-        const payload = { roles, permissions };
+    async generateTokens(userId, roles, permissions, tenantId, campusId) {
+        const payload = { roles, permissions, tenantId, campusId };
         const accessToken = await new SignJWT(payload)
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()

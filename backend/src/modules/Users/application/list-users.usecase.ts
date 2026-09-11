@@ -3,7 +3,7 @@ import type { GetSimpleUser } from "../domain/user.entity.js";
 import AppError from "@shared/errors/AppError.js";
 
 export class ListUsersUseCase {
-    constructor(private readonly usersRepository: UsersRepository) {}
+    constructor(private readonly usersRepository: UsersRepository) { }
 
     async execute(): Promise<GetSimpleUser[]> {
         try {

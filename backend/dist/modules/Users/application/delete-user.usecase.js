@@ -1,5 +1,5 @@
-import AppError from "../../../shared/errors/AppError.js";
-import { NotFoundPersistenceError } from "../../../shared/db/database/errors/NotFoundPersistenceError.js";
+import AppError from "@shared/errors/AppError.js";
+import { NotFoundPersistenceError } from "@shared/db/database/errors/NotFoundPersistenceError.js";
 export class DeleteUserUseCase {
     usersRepository;
     constructor(usersRepository) {

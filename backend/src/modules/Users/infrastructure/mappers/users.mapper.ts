@@ -9,6 +9,7 @@ export class UsersMapper {
             firstName: user.firstName,
             lastName: user.lastName,
             isActive: user.isActive,
+            tenantId: user.tenantId,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt
         };
@@ -21,6 +22,7 @@ export class UsersMapper {
             firstName: user.firstName,
             lastName: user.lastName,
             isActive: user.isActive,
+            tenantId: user.tenantId,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt
         };

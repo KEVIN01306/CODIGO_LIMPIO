@@ -5,6 +5,7 @@ export interface User {
     firstName: string;
     lastName: string;
     isActive: boolean;
+    tenantId: string;
     createdAt: Date;
     updatedAt: Date;
 }

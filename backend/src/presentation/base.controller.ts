@@ -8,7 +8,7 @@ abstract class BaseController {
      * Returns the context or environment of the current request.
      * Centralizes the security of business data.
      */
-    protected obtenerEntorno(res: Response) {
+    protected obtenerEntorno(res: Response): { id: string; tenantId: string; campusId?: string; roles: string[]; permissions: string[] } {
 
         if (!res.locals.user) {
             throw new AppError(

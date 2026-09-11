@@ -1,4 +1,4 @@
-import { PrismaErrorMapper } from "../../../shared/db/database/prisma/PrismaErrorMapper.js";
+import { PrismaErrorMapper } from "@shared/db/database/prisma/PrismaErrorMapper.js";
 import { UsersMapper } from "./mappers/users.mapper.js";
 export class PrismaUsersRepository {
     prisma;
@@ -13,7 +13,8 @@ export class PrismaUsersRepository {
                     passwordHash: data.passwordHash,
                     firstName: data.firstName,
                     lastName: data.lastName,
-                    isActive: true
+                    isActive: true,
+                    tenantId: data.tenantId
                 }
             });
             return UsersMapper.toGetUser(user);
@@ -52,7 +53,7 @@ export class PrismaUsersRepository {
     }
     async findByEmail(email) {
         try {
-            const user = await this.prisma.user.findUnique({
+            const user = await this.prisma.user.findFirst({
                 where: { email }
             });
             return user ? UsersMapper.toDomain(user) : null;

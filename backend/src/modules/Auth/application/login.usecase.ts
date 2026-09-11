@@ -16,8 +16,12 @@ interface LoginResponse {
     user: {
         name: string,
         email: string,
+        tenantId: string,
+        campusId?: string,
         permissions: string[],
         roles: string[],
+        isStudent: boolean,
+        isTeacher: boolean,
     }
 }
 
@@ -60,7 +64,9 @@ export class LoginUseCase {
         const { accessToken, refreshToken } = await this.jwtProvider.generateTokens(
             user.id,
             user.roles,
-            user.permissions
+            user.permissions,
+            user.tenantId,
+            user.campusId
         )
 
         const expiresAt = new Date();
@@ -78,8 +84,12 @@ export class LoginUseCase {
             user: {
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
+                tenantId: user.tenantId,
+                campusId: user.campusId,
                 permissions: user.permissions,
                 roles: user.roles,
+                isStudent: user.isStudent,
+                isTeacher: user.isTeacher,
             }
         }
     }

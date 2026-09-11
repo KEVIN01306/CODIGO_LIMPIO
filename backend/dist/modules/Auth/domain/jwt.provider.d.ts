@@ -4,7 +4,7 @@ declare class JwtProvider {
     private readonly issuer;
     private readonly audience;
     constructor();
-    generateTokens(userId: string, roles: string[], permissions: string[]): Promise<{
+    generateTokens(userId: string, roles: string[], permissions: string[], tenantId: string, campusId?: string): Promise<{
         accessToken: string;
         refreshToken: string;
     }>;

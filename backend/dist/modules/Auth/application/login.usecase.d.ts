@@ -1,4 +1,4 @@
-import type { HashProvider } from "../../../shared/domain/hash.provider.js";
+import type { HashProvider } from "@shared/domain/hash.provider.js";
 import type { AuthRepository } from "../domain/auth.repository.js";
 import type JwtProvider from "../domain/jwt.provider.js";
 interface LoginDTO {
@@ -11,8 +11,12 @@ interface LoginResponse {
     user: {
         name: string;
         email: string;
+        tenantId: string;
+        campusId?: string;
         permissions: string[];
         roles: string[];
+        isStudent: boolean;
+        isTeacher: boolean;
     };
 }
 export declare class LoginUseCase {

@@ -1,5 +1,7 @@
 export interface AuthUser {
     id: string;
+    tenantId: string;
+    campusId?: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -7,5 +9,7 @@ export interface AuthUser {
     isActive: boolean;
     permissions: string[];
     roles: string[];
+    isStudent: boolean;
+    isTeacher: boolean;
 }
 //# sourceMappingURL=auth-user.entity.d.ts.map

@@ -6,9 +6,12 @@ import cookieParser from 'cookie-parser';
 const app = express()
 
 app.use(cors({
-    origin: ['http://localhost:8001'],
+    origin: function (origin, callback) {
+        // Permite cualquier origen dinámicamente (ideal para evitar problemas de CORS en desarrollo/testing)
+        callback(null, origin || true);
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.set('trust proxy', true);

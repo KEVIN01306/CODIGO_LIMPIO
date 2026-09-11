@@ -1,6 +1,6 @@
-import AppError from "../../../shared/errors/AppError.js";
-import { UniqueConstraintError } from "../../../shared/db/database/errors/UniqueConstraintError.js";
-import { NotFoundPersistenceError } from "../../../shared/db/database/errors/NotFoundPersistenceError.js";
+import AppError from "@shared/errors/AppError.js";
+import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
+import { NotFoundPersistenceError } from "@shared/db/database/errors/NotFoundPersistenceError.js";
 export class UpdateUserUseCase {
     usersRepository;
     createAuditLogUseCase;

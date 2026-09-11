@@ -24,7 +24,9 @@ export class PrismaAuthRespository implements AuthRepository {
                             }
                         }
                     }
-                }
+                },
+                student: { select: { campusId: true } },
+                teacher: { select: { campusId: true } }
             }
         });
 
@@ -50,7 +52,9 @@ export class PrismaAuthRespository implements AuthRepository {
                             }
                         }
                     }
-                }
+                },
+                student: { select: { campusId: true } },
+                teacher: { select: { campusId: true } }
             }
         });
 

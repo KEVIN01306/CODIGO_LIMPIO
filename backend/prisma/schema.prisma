@@ -8,24 +8,56 @@ generator client {
 }
 
 // ------------------------------------------------------
-// ENUMS
+// TENANCY & INSTITUTIONAL STRUCTURE
 // ------------------------------------------------------
 
-enum AuditAction {
-  LOGIN
-  LOGOUT
-  CREATE
-  UPDATE
-  DELETE
+model Tenant {
+  id        String   @id @default(uuid())
+  slug      String   @unique // e.g. "url-subdomain-universidad"
+  name      String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  campuses Campus[]
+  programs AcademicProgram[]
+  courses  Course[]
+  users    User[]
+  roles    Role[]
+
+  @@map("tenants")
+}
+
+// Sedes o Centros de Estudio pertenecientes a la Universidad
+model Campus {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  code      String // e.g. "CENTRAL", "OCCIDENTE"
+  name      String
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  academicCycles  AcademicCycle[]
+  cohorts         Cohort[]
+  students        StudentProfile[]
+  teachers        TeacherProfile[]
+  courseOfferings CourseOffering[]
+
+  @@unique([tenantId, code])
+  @@map("campuses")
 }
 
 // ------------------------------------------------------
-// USER & AUTHENTICATION
+// USER & AUTHENTICATION (MULTI-TENANT)
 // ------------------------------------------------------
 
 model User {
   id           String   @id @default(uuid())
-  email        String   @unique
+  tenantId     String   @map("tenant_id")
+  email        String
   passwordHash String   @map("password_hash")
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
@@ -33,17 +65,21 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student   StudentProfile?
+  teacher   TeacherProfile?
   userRoles UserRole[]
   session   UserSession?
   auditLogs AuditLog[]
 
+  @@unique([tenantId, email])
   @@map("users")
 }
 
 model UserSession {
   id        String   @id @default(uuid())
   userId    String   @unique @map("user_id")
-  token     String   @unique @db.VarChar(500) // Access or Refresh Token reference
+  token     String   @unique @db.VarChar(500)
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -53,26 +89,264 @@ model UserSession {
 }
 
 // ------------------------------------------------------
-// ROLES & PERMISSIONS SYSTEM (RBAC)
+// DOMAIN PROFILES (ESTUDIANTE Y DOCENTE)
+// ------------------------------------------------------
+
+model StudentProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  campusId      String   @map("campus_id")
+  cohortId      String?  @map("cohort_id")
+  studentNumber String   @map("student_number") // Carné / Matrícula
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campus      Campus             @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  cohort      Cohort?            @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  enrollments CourseEnrollment[]
+  submissions Submission[]
+
+  @@unique([campusId, studentNumber])
+  @@map("student_profiles")
+}
+
+model TeacherProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  campusId     String   @map("campus_id")
+  employeeCode String?  @map("employee_code")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campus          Campus           @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  courseOfferings CourseOffering[]
+
+  @@unique([campusId, employeeCode])
+  @@map("teacher_profiles")
+}
+
+// ------------------------------------------------------
+// ACADEMIC STRUCTURE (PROGRAMAS, CICLOS Y COHORTES)
+// ------------------------------------------------------
+
+model AcademicProgram {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  code      String // e.g. "ING-SIS"
+  name      String // e.g. "Ingeniería en Sistemas"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cohorts Cohort[]
+  courses Course[]
+
+  @@unique([tenantId, code])
+  @@map("academic_programs")
+}
+
+// Cohortes / Grupos de ingreso (ej. "Ingeniería 2024")
+model Cohort {
+  id        String   @id @default(uuid())
+  campusId  String   @map("campus_id")
+  programId String   @map("program_id")
+  name      String // e.g. "Ingeniería en Sistemas 2024"
+  startYear Int      @map("start_year")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  campus   Campus           @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  program  AcademicProgram  @relation(fields: [programId], references: [id], onDelete: Restrict)
+  students StudentProfile[]
+
+  @@map("cohorts")
+}
+
+// Ciclos académicos por sede (ej. "2026 - Primer Ciclo")
+model AcademicCycle {
+  id        String   @id @default(uuid())
+  campusId  String   @map("campus_id")
+  name      String // e.g. "Primer Semestre 2026"
+  year      Int
+  order     Int // 1, 2, 3 para ordenar ciclos en el año
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  isCurrent Boolean  @default(false) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  campus          Campus           @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  courseOfferings CourseOffering[]
+
+  @@unique([campusId, year, order])
+  @@map("academic_cycles")
+}
+
+// Catálogo general de cursos (Pensum)
+model Course {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  programId   String?  @map("program_id")
+  code        String // e.g. "PROG-101"
+  name        String // e.g. "Programación I"
+  description String?  @db.Text
+  credits     Int      @default(3)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  program   AcademicProgram? @relation(fields: [programId], references: [id], onDelete: SetNull)
+  offerings CourseOffering[]
+
+  @@unique([tenantId, code])
+  @@map("courses")
+}
+
+// ------------------------------------------------------
+// COURSE OFFERINGS & ENROLLMENTS
+// ------------------------------------------------------
+
+// Sección impartida en una sede y ciclo específicos
+model CourseOffering {
+  id        String   @id @default(uuid())
+  campusId  String   @map("campus_id")
+  courseId  String   @map("course_id")
+  cycleId   String   @map("cycle_id")
+  teacherId String?  @map("teacher_id")
+  section   String   @default("A") // e.g. "Sección A"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  campus      Campus             @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  course      Course             @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  cycle       AcademicCycle      @relation(fields: [cycleId], references: [id], onDelete: Restrict)
+  teacher     TeacherProfile?    @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments CourseEnrollment[]
+  assessments Assessment[]
+
+  @@unique([campusId, courseId, cycleId, section])
+  @@map("course_offerings")
+}
+
+// Asignación de alumno al curso/sección (permite mezclar alumnos de distintas cohortes)
+model CourseEnrollment {
+  id         String           @id @default(uuid())
+  offeringId String           @map("offering_id")
+  studentId  String           @map("student_id")
+  status     EnrollmentStatus @default(ENROLLED)
+  finalGrade Decimal?         @map("final_grade") @db.Decimal(5, 2)
+  enrolledAt DateTime         @default(now()) @map("enrolled_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  offering    CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  finalGrades GradeRecord[]
+
+  @@unique([offeringId, studentId])
+  @@map("course_enrollments")
+}
+
+// ------------------------------------------------------
+// EVALUATIONS, ASSESSMENTS & GRADES
+// ------------------------------------------------------
+
+model Assessment {
+  id          String         @id @default(uuid())
+  offeringId  String         @map("offering_id")
+  title       String // e.g. "Examen Parcial 1: Estructuras de Datos"
+  description String?        @db.Text
+  type        AssessmentType
+  maxScore    Decimal        @map("max_score") @db.Decimal(5, 2) // e.g. 100.00 o 20.00
+  weight      Decimal?       @db.Decimal(5, 2) // Ponderación % sobre la nota final
+  dueDate     DateTime?      @map("due_date")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Configuración de entorno de examen
+  timeLimitMinutes Int?    @map("time_limit_minutes")
+  allowedLanguage  String? @map("allowed_language") // e.g. "typescript", "angular"
+  strictMode       Boolean @default(true) @map("strict_mode") // Bloqueo copy/paste, fullscreen
+
+  offering     CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  submissions  Submission[]
+  gradeRecords GradeRecord[]
+
+  @@map("assessments")
+}
+
+// Entregas de código y ejecución en sandbox
+model Submission {
+  id           String           @id @default(uuid())
+  assessmentId String           @map("assessment_id")
+  studentId    String           @map("student_id")
+  status       SubmissionStatus @default(IN_PROGRESS)
+  startedAt    DateTime         @default(now()) @map("started_at")
+  submittedAt  DateTime?        @map("submitted_at")
+
+  // Métricas de integridad en el frontend
+  tabSwitchesCount  Int @default(0) @map("tab_switches_count")
+  clipboardAttempts Int @default(0) @map("clipboard_attempts")
+
+  // Calificaciones calculadas
+  testsPassedScore Decimal? @map("tests_passed_score") @db.Decimal(5, 2) // Casos de prueba superados
+  aiQualityScore   Decimal? @map("ai_quality_score") @db.Decimal(5, 2) // Calificación cualitativa IA
+  totalScore       Decimal? @map("total_score") @db.Decimal(5, 2)
+
+  // Reportes y Feedback
+  testOutput Json? // Reporte de tests unitarios (Karma, Jest, JUnit)
+  aiFeedback Json? // Rúbrica y sugerencias socráticas / formativas
+
+  assessment Assessment     @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("submissions")
+}
+
+// Registro consolidado en el libro de notas oficial
+model GradeRecord {
+  id           String   @id @default(uuid())
+  enrollmentId String   @map("enrollment_id")
+  assessmentId String   @map("assessment_id")
+  score        Decimal  @db.Decimal(5, 2)
+  feedback     String?  @db.Text
+  isOverridden Boolean  @default(false) @map("is_overridden") // Si el docente editó la nota de la IA
+  recordedAt   DateTime @default(now()) @map("recorded_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  assessment Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, assessmentId])
+  @@map("grade_records")
+}
+
+// ------------------------------------------------------
+// ROLES & PERMISSIONS SYSTEM (RBAC CON TENANT)
 // ------------------------------------------------------
 
 model Role {
   id          String   @id @default(uuid())
-  name        String   @unique // e.g., "SUPER_ADMIN", "ADMIN", "USER"
+  tenantId    String?  @map("tenant_id") // Null para roles de plataforma global
+  name        String // e.g. "CAMPUS_ADMIN", "TEACHER", "STUDENT"
   description String?
-  isSystem    Boolean  @default(false) @map("is_system") // System roles that cannot be deleted
+  isSystem    Boolean  @default(false) @map("is_system")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   userRoles       UserRole[]
   rolePermissions RolePermission[]
 
+  @@unique([tenantId, name])
   @@map("roles")
 }
 
 model Permission {
   id          String   @id @default(uuid())
-  action      String   @unique // Key string, e.g., "users:create", "system:audit:read"
+  action      String   @unique // e.g. "courses:create", "grades:override"
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -81,7 +355,6 @@ model Permission {
   @@map("permissions")
 }
 
-// Join Table: Users <-> Roles
 model UserRole {
   userId     String   @map("user_id")
   roleId     String   @map("role_id")
@@ -94,7 +367,6 @@ model UserRole {
   @@map("user_roles")
 }
 
-// Join Table: Roles <-> Permissions
 model RolePermission {
   roleId       String   @map("role_id")
   permissionId String   @map("permission_id")
@@ -115,12 +387,45 @@ model AuditLog {
   id         String      @id @default(uuid())
   userId     String?     @map("user_id")
   action     AuditAction
-  resource   String // Affected module or entity e.g., "auth", "user"
+  resource   String
   resourceId String?     @map("resource_id")
-  details    Json? // Metadata: IP, User-Agent, Changes Diffs, etc.
+  details    Json?
   createdAt  DateTime    @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+// ------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  DROPPED
+  PASSED
+  FAILED
+}
+
+enum AssessmentType {
+  EXAM
+  LABORATORY
+  HOMEWORK
+  PROJECT
+}
+
+enum SubmissionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EVALUATED
+  FLAGGED
 }

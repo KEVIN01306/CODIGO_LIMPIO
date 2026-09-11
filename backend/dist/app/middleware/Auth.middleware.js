@@ -1,5 +1,5 @@
-import JwtProvider from "../../modules/Auth/domain/jwt.provider.js";
-import AppError from "../../shared/errors/AppError.js";
+import JwtProvider from "@modules/Auth/domain/jwt.provider.js";
+import AppError from "@shared/errors/AppError.js";
 export class AuthMiddleware {
     jwtProvider;
     constructor() {
@@ -18,6 +18,8 @@ export class AuthMiddleware {
             const payload = await this.jwtProvider.verifyToken(String(token));
             res.locals.user = {
                 id: payload.sub,
+                tenantId: payload.tenantId,
+                campusId: payload.campusId,
                 roles: payload.roles,
                 permissions: payload.permissions,
             };

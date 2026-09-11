@@ -1,4 +1,4 @@
-import AppError from "../../../shared/errors/AppError.js";
+import AppError from "@shared/errors/AppError.js";
 export class LoginUseCase {
     authRepository;
     jwtProvider;
@@ -31,7 +31,7 @@ export class LoginUseCase {
         if (!isValid) {
             throw new AppError("Invalid credentials", "INVALID_CREDENTIALS", 401);
         }
-        const { accessToken, refreshToken } = await this.jwtProvider.generateTokens(user.id, user.roles, user.permissions);
+        const { accessToken, refreshToken } = await this.jwtProvider.generateTokens(user.id, user.roles, user.permissions, user.tenantId, user.campusId);
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
         await this.authRepository.upsertSession(user.id, refreshToken, expiresAt);
@@ -41,8 +41,12 @@ export class LoginUseCase {
             user: {
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
+                tenantId: user.tenantId,
+                campusId: user.campusId,
                 permissions: user.permissions,
                 roles: user.roles,
+                isStudent: user.isStudent,
+                isTeacher: user.isTeacher,
             }
         };
     }
