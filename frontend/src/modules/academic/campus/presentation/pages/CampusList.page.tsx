@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment, Chip } from '@mui/material';
-import { Add, Search, Edit, Visibility } from '@mui/icons-material';
+import { Box, Chip } from '@mui/material';
+import { Add, Edit, Visibility } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getCampuses } from '../../../campus/infrastructure/campus.service';
 import type { Campus } from '../../../campus/domain/campus.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const CampusList = () => {
   const navigate = useNavigate();
@@ -51,7 +53,15 @@ const CampusList = () => {
   };
 
   const columns = [
-    { id: 'code', name: 'Code' },
+    {
+      id: 'code',
+      name: 'Code',
+      format: (value: string) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#60a5fa' }}>
+          {value}
+        </span>
+      ),
+    },
     { id: 'name', name: 'Name' },
     { id: 'address', name: 'Address' },
     {
@@ -60,8 +70,15 @@ const CampusList = () => {
       format: (value: boolean) => (
         <Chip
           label={value ? 'Active' : 'Inactive'}
-          color={value ? 'success' : 'default'}
           size="small"
+          sx={{
+            borderRadius: '5.26px',
+            fontWeight: 500,
+            fontSize: '11px',
+            backgroundColor: value ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+            color: value ? '#4ade80' : '#858687',
+            border: `0.5px solid ${value ? 'rgba(74, 222, 128, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+          }}
         />
       ),
     },
@@ -81,46 +98,22 @@ const CampusList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Campuses
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your institution's campuses and study centers.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/academic/campuses/create')}
-        >
-          Create Campus
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Campuses"
+        subtitle="Manage your institution's physical and regional campuses."
+        actionLabel="Create Campus"
+        actionIcon={<Add />}
+        onAction={() => navigate('/academic/campuses/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search by code or name..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search campuses by code or name..."
+      />
 
       <ListTable
         data={data}

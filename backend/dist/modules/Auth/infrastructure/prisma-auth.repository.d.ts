@@ -10,5 +10,7 @@ export declare class PrismaAuthRespository implements AuthRepository {
     upsertSession(userId: AuthUser["id"], token: AuthSession['token'], expiresAt: Date): Promise<void>;
     findSessionByToken(token: AuthSession["token"]): Promise<AuthSession | null>;
     findSessionByUserId(userId: AuthUser["id"]): Promise<AuthSession | null>;
+    deleteSessionByToken(token: AuthSession["token"]): Promise<void>;
+    getDetailedProfile(id: AuthUser["id"]): Promise<any>;
 }
 //# sourceMappingURL=prisma-auth.repository.d.ts.map

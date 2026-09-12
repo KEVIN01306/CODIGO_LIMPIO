@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
-import { Add, Search, Edit } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { Add, Edit } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getTeachers } from '../../infrastructure/teacher.service';
 import type { TeacherProfile } from '../../domain/teacher.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const TeacherList = () => {
   const navigate = useNavigate();
@@ -28,8 +30,6 @@ const TeacherList = () => {
     setLoading(true);
     try {
       const response = await getTeachers({ page, perPage, q });
-      // The backend returns an array under "data", and pagination metadata in the root response.meta (assuming similar format to others)
-      // Actually, response is just what getTeachers returns. Let's check structure:
       setData(response.data);
       setTotal(response.meta?.total || 0);
     } catch (error) {
@@ -56,23 +56,24 @@ const TeacherList = () => {
     {
       id: 'name',
       name: 'Name',
-      format: (_: any, row: TeacherProfile) => row.user ? `${row.user.firstName} ${row.user.lastName}` : 'N/A'
+      format: (_: any, row: TeacherProfile) =>
+        row.user ? `${row.user.firstName} ${row.user.lastName}` : 'N/A',
     },
     {
       id: 'email',
       name: 'Email',
-      format: (_: any, row: TeacherProfile) => row.user?.email || 'N/A'
+      format: (_: any, row: TeacherProfile) => row.user?.email || 'N/A',
     },
     {
       id: 'campus',
       name: 'Campus',
-      format: (_: any, row: TeacherProfile) => row.campus?.name || 'N/A'
+      format: (_: any, row: TeacherProfile) => row.campus?.name || 'N/A',
     },
     {
       id: 'employeeCode',
       name: 'Employee Code',
-      format: (_: any, row: TeacherProfile) => row.employeeCode || '-'
-    }
+      format: (_: any, row: TeacherProfile) => row.employeeCode || '-',
+    },
   ];
 
   const actions = [
@@ -84,46 +85,22 @@ const TeacherList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Teachers
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage teacher profiles and access.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/users/teachers/create')}
-        >
-          Add Teacher
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Teachers"
+        subtitle="Manage instructor profiles, course assignment rights, and employee details."
+        actionLabel="Add Teacher"
+        actionIcon={<Add />}
+        onAction={() => navigate('/users/teachers/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search teachers by name or email..."
+      />
 
       <ListTable
         data={data}

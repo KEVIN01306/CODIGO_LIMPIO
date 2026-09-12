@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment, Chip } from '@mui/material';
-import { Add, Search, Edit, Visibility } from '@mui/icons-material';
+import { Box, Chip } from '@mui/material';
+import { Add, Edit, Visibility } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getCourses } from '../../../course/infrastructure/course.service';
 import type { Course } from '../../../course/domain/course.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const CourseList = () => {
   const navigate = useNavigate();
@@ -51,12 +53,20 @@ const CourseList = () => {
   };
 
   const columns = [
-    { id: 'code', name: 'Code' },
+    {
+      id: 'code',
+      name: 'Code',
+      format: (value: string) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#60a5fa' }}>
+          {value}
+        </span>
+      ),
+    },
     { id: 'name', name: 'Name' },
     {
       id: 'program',
       name: 'Program',
-      format: (_, row: Course) => row.program?.name || 'N/A'
+      format: (_, row: Course) => row.program?.name || 'N/A',
     },
     { id: 'credits', name: 'Credits' },
     {
@@ -65,10 +75,17 @@ const CourseList = () => {
       format: (value: boolean) => (
         <Chip
           label={value ? 'Active' : 'Inactive'}
-          color={value ? 'success' : 'default'}
           size="small"
+          sx={{
+            borderRadius: '5.26px',
+            fontWeight: 500,
+            fontSize: '11px',
+            backgroundColor: value ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+            color: value ? '#4ade80' : '#858687',
+            border: `0.5px solid ${value ? 'rgba(74, 222, 128, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+          }}
         />
-      )
+      ),
     },
   ];
 
@@ -86,46 +103,22 @@ const CourseList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Courses
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your academic courses.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/academic/courses/create')}
-        >
-          Create Course
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Courses"
+        subtitle="Manage academic courses, syllabus definitions, and credit structures."
+        actionLabel="Create Course"
+        actionIcon={<Add />}
+        onAction={() => navigate('/academic/courses/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search by code or name..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search fontSize="small" />
-              </InputAdornment>
-            ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search courses by code or name..."
+      />
 
       <ListTable
         data={data}

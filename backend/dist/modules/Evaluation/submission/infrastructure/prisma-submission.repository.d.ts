@@ -12,5 +12,7 @@ export declare class PrismaSubmissionRepository implements SubmissionRepository 
     }): Promise<SubmissionEntity>;
     update(id: string, data: any): Promise<SubmissionEntity | null>;
     findById(id: string): Promise<SubmissionEntity | null>;
+    findByAssessment(assessmentId: string): Promise<SubmissionEntity[]>;
+    updateGrade(id: string, totalScore: number, feedback?: string): Promise<SubmissionEntity | null>;
 }
 //# sourceMappingURL=prisma-submission.repository.d.ts.map

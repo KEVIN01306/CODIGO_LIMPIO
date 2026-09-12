@@ -9,5 +9,6 @@ const router = Router();
 router.post('/login', validatedMiddleware.validateBody(loginSchema), authController.login);
 router.post('/refresh', authController.refresh);
 router.get('/me', authMiddleware.routeProtect, authController.getProfile);
+router.post('/logout', authController.logout);
 export default router;
 //# sourceMappingURL=auth.routes.js.map

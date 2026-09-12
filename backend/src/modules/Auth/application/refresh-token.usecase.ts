@@ -9,6 +9,7 @@ interface RefreshResponse {
     accessToken: string;
     refreshToken: string;
     user: {
+        id: string;
         name: string;
         email: string;
         tenantId: string;
@@ -69,6 +70,7 @@ export class RefreshTokenUseCase {
             accessToken,
             refreshToken,
             user: {
+                id: user.id,
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
                 tenantId: user.tenantId,

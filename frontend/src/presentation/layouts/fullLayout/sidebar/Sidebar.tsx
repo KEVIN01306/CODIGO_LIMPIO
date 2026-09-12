@@ -51,7 +51,7 @@ export const Sidebar = () => {
       open={isMobile ? isSidebarOpen : true}
       onClose={isMobile ? toggleSidebar : undefined}
       ModalProps={{
-        keepMounted: true, 
+        keepMounted: true,
       }}
       sx={{
         width: currentWidth,
@@ -59,8 +59,9 @@ export const Sidebar = () => {
         '& .MuiDrawer-paper': {
           width: currentWidth,
           boxSizing: 'border-box',
-          borderRight: '1px dashed rgba(0, 0, 0, 0.12)',
-          bgcolor: 'background.paper',
+          borderRight: '0.5px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
           overflowX: 'hidden',
           transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
@@ -69,16 +70,16 @@ export const Sidebar = () => {
         },
       }}
     >
-      <Box sx={{ p: isSidebarOpen ? 3 : 2, display: 'flex', alignItems: 'center', gap: 2, justifyContent: isSidebarOpen ? 'flex-start' : 'center', minHeight: 64 }}>
+      <Box sx={{ p: isSidebarOpen ? 2.5 : 2, display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: isSidebarOpen ? 'flex-start' : 'center', minHeight: 64 }}>
         <Box
           component="img"
           src="/icon.png"
           alt="Logo"
-          sx={{ width: 32, height: 32, objectFit: 'contain' }}
+          sx={{ width: 28, height: 28, objectFit: 'contain' }}
         />
         {isSidebarOpen && (
-          <Typography sx={{ fontWeight: 'bold' }} variant="h6" color="primary" noWrap>
-            C. LIMPIO
+          <Typography sx={{ fontWeight: 500, fontSize: '0.95rem', letterSpacing: '-0.2px', color: 'text.primary' }} variant="h6" noWrap>
+            CODE ACADEMY
           </Typography>
         )}
       </Box>

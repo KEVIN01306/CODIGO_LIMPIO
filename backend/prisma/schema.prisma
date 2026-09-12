@@ -19,11 +19,12 @@ model Tenant {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  campuses Campus[]
-  programs AcademicProgram[]
-  courses  Course[]
-  users    User[]
-  roles    Role[]
+  campuses           Campus[]
+  programs           AcademicProgram[]
+  courses            Course[]
+  users              User[]
+  roles              Role[]
+  workspaceTemplates WorkspaceTemplate[]
 
   @@map("tenants")
 }
@@ -254,25 +255,27 @@ model CourseEnrollment {
 // ------------------------------------------------------
 
 model Assessment {
-  id          String         @id @default(uuid())
-  offeringId  String         @map("offering_id")
-  title       String // e.g. "Examen Parcial 1: Estructuras de Datos"
-  description String?        @db.Text
-  type        AssessmentType
-  maxScore    Decimal        @map("max_score") @db.Decimal(5, 2) // e.g. 100.00 o 20.00
-  weight      Decimal?       @db.Decimal(5, 2) // Ponderación % sobre la nota final
-  dueDate     DateTime?      @map("due_date")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
+  id                  String         @id @default(uuid())
+  offeringId          String         @map("offering_id")
+  workspaceTemplateId String?
+  title               String // e.g. "Examen Parcial 1: Estructuras de Datos"
+  description         String?        @db.Text
+  type                AssessmentType
+  maxScore            Decimal        @map("max_score") @db.Decimal(5, 2) // e.g. 100.00 o 20.00
+  weight              Decimal?       @db.Decimal(5, 2) // Ponderación % sobre la nota final
+  dueDate             DateTime?      @map("due_date")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
 
   // Configuración de entorno de examen
   timeLimitMinutes Int?    @map("time_limit_minutes")
   allowedLanguage  String? @map("allowed_language") // e.g. "typescript", "angular"
   strictMode       Boolean @default(true) @map("strict_mode") // Bloqueo copy/paste, fullscreen
 
-  offering     CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
-  submissions  Submission[]
-  gradeRecords GradeRecord[]
+  offering          CourseOffering     @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  submissions       Submission[]
+  gradeRecords      GradeRecord[]
+  workspaceTemplate WorkspaceTemplate? @relation(fields: [workspaceTemplateId], references: [id])
 
   @@map("assessments")
 }
@@ -294,6 +297,9 @@ model Submission {
   testsPassedScore Decimal? @map("tests_passed_score") @db.Decimal(5, 2) // Casos de prueba superados
   aiQualityScore   Decimal? @map("ai_quality_score") @db.Decimal(5, 2) // Calificación cualitativa IA
   totalScore       Decimal? @map("total_score") @db.Decimal(5, 2)
+
+  // History of the tutor IA
+  chatHistory Json? @map("chat_history")
 
   // Reportes y Feedback
   testOutput Json? // Reporte de tests unitarios (Karma, Jest, JUnit)
@@ -328,6 +334,45 @@ model GradeRecord {
 
   @@unique([enrollmentId, assessmentId])
   @@map("grade_records")
+}
+
+model WorkspaceTemplate {
+  id          String  @id @default(uuid())
+  tenantId    String  @map("tenant_id")
+  code        String // e.g., "TEMPLATE-PROG1-CONSOLE"
+  name        String // e.g., "Laboratorio de Algoritmos I"
+  description String?
+
+  // Configuración de aditamentos
+  language   String  @default("javascript")
+  hasConsole Boolean @default(true) @map("has_console")
+  hasPreview Boolean @default(false) @map("has_preview")
+  hasAiTutor Boolean @default(true) @map("has_ai_tutor")
+  strictMode Boolean @default(true) @map("strict_mode")
+
+  // Archivos iniciales con los que arranca el estudiante
+  initialFiles Json @map("initial_files")
+  // Formato: { "index.js": "console.log('Hola');" }
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assessments Assessment[]
+
+  @@unique([tenantId, code])
+  @@map("workspace_templates")
+}
+
+model SupportedLanguage {
+  id        String   @id @default(uuid())
+  name      String   @unique // e.g. "javascript"
+  version   String // e.g. "18.15.0"
+  aliases   Json // ["js", "node-js"]
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("supported_languages")
 }
 
 // ------------------------------------------------------

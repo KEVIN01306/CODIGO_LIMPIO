@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
-import { Add, Search, Edit, Visibility } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { Add, Edit, Visibility } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getAcademicPrograms } from '../../../program/infrastructure/academicProgram.service';
 import type { AcademicProgram } from '../../../program/domain/academicProgram.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const AcademicProgramList = () => {
   const navigate = useNavigate();
@@ -51,12 +53,25 @@ const AcademicProgramList = () => {
   };
 
   const columns = [
-    { id: 'code', name: 'Code' },
+    {
+      id: 'code',
+      name: 'Code',
+      format: (value: string) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#60a5fa' }}>
+          {value}
+        </span>
+      ),
+    },
     { id: 'name', name: 'Name' },
     {
       id: 'createdAt',
       name: 'Created At',
-      format: (value: string) => new Date(value).toLocaleDateString(),
+      format: (value: string) =>
+        new Date(value).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
     },
   ];
 
@@ -74,46 +89,22 @@ const AcademicProgramList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Academic Programs
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your institution's academic programs.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/academic/programs/create')}
-        >
-          Create Program
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Academic Programs"
+        subtitle="Manage curricula, degree programs, and career tracks."
+        actionLabel="Create Program"
+        actionIcon={<Add />}
+        onAction={() => navigate('/academic/programs/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search by code or name..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search fontSize="small" />
-              </InputAdornment>
-            ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search programs by code or name..."
+      />
 
       <ListTable
         data={data}

@@ -7,4 +7,6 @@ export interface AuthRepository {
     findSessionByToken(token: AuthSession['token']): Promise<AuthSession | null>
     findSessionByUserId(userId: AuthUser['id']): Promise<AuthSession | null>
     upsertSession(userId: AuthUser['id'], token: AuthSession['token'], expiresAt: Date): Promise<void>
+    deleteSessionByToken(token: AuthSession['token']): Promise<void>
+    getDetailedProfile(id: AuthUser['id']): Promise<any>
 }

@@ -10,6 +10,12 @@ export class SubmissionEntity {
         public readonly clipboardAttempts: number,
         public readonly codeSnapshot: any,
         public readonly assessment?: any,
-        public readonly student?: any
+        public readonly student?: any,
+        public readonly testsPassedScore?: number | null,
+        public readonly aiQualityScore?: number | null,
+        public readonly totalScore?: number | null,
+        public readonly testOutput?: any,
+        public readonly aiFeedback?: any,
+        public readonly chatHistory?: any
     ) {}
 }

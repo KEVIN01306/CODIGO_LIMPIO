@@ -9,7 +9,11 @@ import {
     TableRow,
     Typography,
     Box,
-    Chip
+    Chip,
+    Card,
+    CardContent,
+    Divider,
+    Stack,
 } from '@mui/material';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
@@ -31,8 +35,8 @@ export interface Props {
 export const ListTableSimple = ({
     columns,
     data,
-    headerBgColor = '#1565c0',
-    headerTextColor = '#ffffff',
+    headerBgColor = 'background.paper',
+    headerTextColor = 'text.secondary',
     disableVerticalScroll = false,
     maxTableHeight = 520,
 }: Props) => {
@@ -71,15 +75,25 @@ export const ListTableSimple = ({
         };
     }, [data, disableVerticalScroll]);
 
+    const primaryColumn = columns[0];
+    const secondaryColumns = columns.slice(1);
+
     return (
         <Box sx={{ position: 'relative', width: '100%' }}>
+            {/* Desktop Table View (Medium screens and up) */}
             <TableContainer
                 ref={containerRef}
                 component={Paper}
+                elevation={0}
                 sx={{
+                    display: { xs: 'none', md: 'block' },
                     overflowX: 'auto',
                     overflowY: disableVerticalScroll ? 'visible' : 'auto',
                     maxHeight: disableVerticalScroll ? 'none' : maxTableHeight,
+                    border: '0.5px solid',
+                    borderColor: 'divider',
+                    borderRadius: '12px',
+                    bgcolor: 'background.paper',
                 }}
             >
                 <Table stickyHeader={!disableVerticalScroll} sx={{ minWidth: 650 }}>
@@ -91,9 +105,13 @@ export const ListTableSimple = ({
                                     sx={{
                                         backgroundColor: headerBgColor,
                                         color: headerTextColor,
-                                        fontWeight: 'bold',
-                                        fontSize: '0.95rem',
-                                        borderBottom: 'none'
+                                        fontWeight: 500,
+                                        fontSize: '11px',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.04rem',
+                                        borderBottom: '0.5px solid',
+                                        borderColor: 'divider',
+                                        py: 1.5,
                                     }}
                                 >
                                     {col.name}
@@ -107,13 +125,18 @@ export const ListTableSimple = ({
                                 <TableRow
                                     key={row.id || rowIndex}
                                     hover
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                    sx={{
+                                        borderBottom: '0.5px solid',
+                                        borderColor: 'divider',
+                                        transition: 'background-color 0.15s ease',
+                                        '&:last-child td, &:last-child th': { border: 0 },
+                                    }}
                                 >
                                     {columns.map((col) => {
                                         const value = row[col.id];
                                         return (
-                                            <TableCell key={col.id} sx={{ py: 1.5 }}>
-                                                {col.format ? col.format(value, row) : (value ?? 'N/A')}
+                                            <TableCell key={col.id} sx={{ py: 1.5, fontSize: '13px', color: 'text.primary' }}>
+                                                {col.format ? col.format(value, row) : (value ?? '-')}
                                             </TableCell>
                                         );
                                     })}
@@ -121,8 +144,8 @@ export const ListTableSimple = ({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} align="center" sx={{ py: 4 }}>
-                                    <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                <TableCell colSpan={columns.length} align="center" sx={{ py: 5 }}>
+                                    <Typography variant="body2" color="text.secondary">
                                         No hay registros disponibles.
                                     </Typography>
                                 </TableCell>
@@ -132,9 +155,130 @@ export const ListTableSimple = ({
                 </Table>
             </TableContainer>
 
+            {/* Mobile Cards View (Small screens) */}
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                {data && data.length > 0 ? (
+                    <Stack spacing={1.75}>
+                        {data.map((row, index) => (
+                            <Card
+                                key={row.id || index}
+                                elevation={0}
+                                sx={{
+                                    border: '0.5px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: '12px',
+                                    backgroundColor: 'background.paper',
+                                }}
+                            >
+                                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                    {primaryColumn && (
+                                        <Box sx={{ mb: 1 }}>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    color: 'text.secondary',
+                                                    fontWeight: 500,
+                                                    fontSize: '11px',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.04rem',
+                                                    display: 'block',
+                                                    mb: 0.25,
+                                                }}
+                                            >
+                                                {primaryColumn.name}
+                                            </Typography>
+                                            <Box
+                                                sx={{
+                                                    color: 'text.primary',
+                                                    fontWeight: 500,
+                                                    fontSize: '14px',
+                                                    wordBreak: 'break-word',
+                                                }}
+                                            >
+                                                {primaryColumn.format
+                                                    ? primaryColumn.format(row[primaryColumn.id], row)
+                                                    : (row[primaryColumn.id] ?? '-')}
+                                            </Box>
+                                        </Box>
+                                    )}
+
+                                    {secondaryColumns.length > 0 && (
+                                        <>
+                                            <Divider sx={{ my: 1.25, borderColor: 'divider' }} />
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                                                {secondaryColumns.map((col) => {
+                                                    const value = row[col.id];
+                                                    return (
+                                                        <Box
+                                                            key={col.id}
+                                                            sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                py: 0.4,
+                                                                gap: 1.5,
+                                                                borderBottom: '0.5px dashed',
+                                                                borderColor: 'divider',
+                                                                '&:last-child': { borderBottom: 'none' },
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                variant="caption"
+                                                                sx={{
+                                                                    color: 'text.secondary',
+                                                                    fontWeight: 500,
+                                                                    fontSize: '11px',
+                                                                    textTransform: 'uppercase',
+                                                                    letterSpacing: '0.03rem',
+                                                                    flexShrink: 0,
+                                                                }}
+                                                            >
+                                                                {col.name}
+                                                            </Typography>
+                                                            <Box
+                                                                sx={{
+                                                                    color: 'text.primary',
+                                                                    fontWeight: 450,
+                                                                    fontSize: '13px',
+                                                                    textAlign: 'right',
+                                                                    wordBreak: 'break-word',
+                                                                }}
+                                                            >
+                                                                {col.format ? col.format(value, row) : (value ?? '-')}
+                                                            </Box>
+                                                        </Box>
+                                                    );
+                                                })}
+                                            </Box>
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </Stack>
+                ) : (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 4,
+                            textAlign: 'center',
+                            border: '0.5px dashed',
+                            borderColor: 'divider',
+                            borderRadius: '12px',
+                            backgroundColor: 'background.paper',
+                        }}
+                    >
+                        <Typography variant="body2" color="text.secondary">
+                            No hay registros disponibles.
+                        </Typography>
+                    </Paper>
+                )}
+            </Box>
+
             {showScrollIndicator && (
                 <Box
                     sx={{
+                        display: { xs: 'none', md: 'block' },
                         position: 'absolute',
                         bottom: 16,
                         left: '50%',
@@ -150,14 +294,15 @@ export const ListTableSimple = ({
                     }}
                 >
                     <Chip
-                        icon={<ArrowDownwardIcon style={{ color: '#fff' }} />}
+                        icon={<ArrowDownwardIcon sx={{ fontSize: 14 }} />}
                         label="Desliza para ver más"
                         sx={{
-                            boxShadow: 4,
-                            fontWeight: 'bold',
-                            backgroundColor: headerBgColor,
-                            color: '#ffffff',
-                            '& .MuiChip-icon': { marginLeft: '8px' }
+                            fontWeight: 500,
+                            backgroundColor: 'background.paper',
+                            color: 'text.primary',
+                            border: '0.5px solid',
+                            borderColor: 'divider',
+                            '& .MuiChip-icon': { marginLeft: '8px' },
                         }}
                     />
                 </Box>

@@ -5,6 +5,7 @@ interface RefreshResponse {
     accessToken: string;
     refreshToken: string;
     user: {
+        id: string;
         name: string;
         email: string;
         tenantId: string;

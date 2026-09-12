@@ -113,4 +113,39 @@ export class PrismaAuthRespository implements AuthRepository {
             createdAt: sessionDb.createdAt
         };
     }
+
+    async deleteSessionByToken(token: AuthSession["token"]): Promise<void> {
+        await this.db.userSession.deleteMany({
+            where: { token }
+        });
+    }
+
+    async getDetailedProfile(id: AuthUser["id"]): Promise<any> {
+        return this.db.user.findUnique({
+            where: { id, isActive: true },
+            include: {
+                tenant: { select: { id: true, name: true, slug: true } },
+                userRoles: {
+                    select: {
+                        role: { select: { name: true, description: true } }
+                    }
+                },
+                student: {
+                    include: {
+                        campus: { select: { id: true, name: true, code: true } },
+                        cohort: {
+                            include: {
+                                program: { select: { id: true, name: true, code: true } }
+                            }
+                        }
+                    }
+                },
+                teacher: {
+                    include: {
+                        campus: { select: { id: true, name: true, code: true } }
+                    }
+                }
+            }
+        });
+    }
 }

@@ -19,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1090.0",
+    "@google/genai": "^2.22.0",
     "@prisma/client": "^6.19.2",
     "argon2": "^0.44.0",
     "cookie-parser": "^1.4.7",

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
-import { Add, Search, Edit, Visibility, GroupOutlined, AssignmentOutlined } from '@mui/icons-material';
+import { Box, Chip } from '@mui/material';
+import { Add, Edit, Visibility, GroupOutlined, AssignmentOutlined } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getCourseOfferings } from '../../infrastructure/courseOffering.service';
 import type { CourseOffering } from '../../domain/courseOffering.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const CourseOfferingList = () => {
   const navigate = useNavigate();
@@ -54,28 +56,45 @@ const CourseOfferingList = () => {
     {
       id: 'course',
       name: 'Course',
-      format: (_: any, row: CourseOffering) => row.course?.name || 'N/A'
+      format: (_: any, row: CourseOffering) => row.course?.name || 'N/A',
     },
     {
       id: 'campus',
       name: 'Campus',
-      format: (_: any, row: CourseOffering) => row.campus?.name || 'N/A'
+      format: (_: any, row: CourseOffering) => row.campus?.name || 'N/A',
     },
     {
       id: 'cycle',
       name: 'Cycle',
-      format: (_: any, row: CourseOffering) => row.cycle ? `${row.cycle.name} (${row.cycle.year})` : 'N/A'
+      format: (_: any, row: CourseOffering) =>
+        row.cycle ? `${row.cycle.name} (${row.cycle.year})` : 'N/A',
     },
     {
       id: 'section',
-      name: 'Section'
+      name: 'Section',
+      format: (v: string) => (
+        <Chip
+          label={v}
+          size="small"
+          sx={{
+            borderRadius: '5.26px',
+            fontWeight: 500,
+            fontSize: '11px',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            color: '#cececf',
+            border: '0.5px solid rgba(255, 255, 255, 0.1)',
+          }}
+        />
+      ),
     },
     {
       id: 'teacher',
       name: 'Teacher',
-      format: (_: any, row: CourseOffering) => row.teacher?.user ? `${row.teacher.user.firstName} ${row.teacher.user.lastName}` : 'Unassigned'
-    }
+      format: (_: any, row: CourseOffering) =>
+        row.teacher?.user ? `${row.teacher.user.firstName} ${row.teacher.user.lastName}` : 'Unassigned',
+    },
   ];
+
   const actions = [
     {
       name: 'Detail',
@@ -90,6 +109,7 @@ const CourseOfferingList = () => {
     {
       name: 'Manage Assessments',
       icon: <AssignmentOutlined fontSize="small" />,
+      color: '#3b82f6',
       onClick: (row: CourseOffering) => navigate(`/assignment/offerings/${row.id}/assessments`),
     },
     {
@@ -100,46 +120,22 @@ const CourseOfferingList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Course Offerings
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage course offerings for cycles and campuses.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/assignment/offerings/create')}
-        >
-          Create Offering
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Course Offerings"
+        subtitle="Manage active course sections, assigned instructors, and schedules."
+        actionLabel="Create Offering"
+        actionIcon={<Add />}
+        onAction={() => navigate('/assignment/offerings/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search course offerings..."
+      />
 
       <ListTable
         data={data}

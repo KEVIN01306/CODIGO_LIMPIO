@@ -33,17 +33,17 @@ export const handleApiError = (error: any) => {
     if (status === 401) {
         if (backendCode === "TOKEN_EXPIRED") {
             toast.error(`Sesión expirada\nTu sesión ha caducado por seguridad. Inicia sesión de nuevo.`);
-            useAuthStore.getState().logout();
+            useAuthStore.getState().clearAuth();
             return;
         }
 
         if (backendCode === "INVALID_CREDENTIALS") {
-            toast.error(`Error de acceso\nEl numero o la contraseña son incorrectos.`);
+            toast.error(`Error de acceso\nEl correo o la contraseña son incorrectos.`);
             return;
         }
 
         toast.error(`No autorizado\nDebes iniciar sesión.`);
-        useAuthStore.getState().logout();
+        useAuthStore.getState().clearAuth();
         return;
     }
 

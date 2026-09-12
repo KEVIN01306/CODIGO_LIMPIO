@@ -4,12 +4,13 @@ import type { Request, Response, NextFunction } from "express";
 import AppError from "@shared/errors/AppError.js";
 import type { RefreshTokenUseCase } from "../application/refresh-token.usecase.js";
 import type { GetProfileUseCase } from "../application/get-profile.usecase.js";
+import type { LogoutUseCase } from "../application/logout.usecase.js";
 
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: 'strict' as const,
+    sameSite: (process.env.NODE_ENV === "production" ? 'strict' : 'lax') as any,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/'
 }
@@ -20,7 +21,8 @@ export class AuthController {
     constructor(
         private readonly loginUseCase: LoginUseCase,
         private readonly refreshTokenUseCase: RefreshTokenUseCase,
-        private readonly getProfileUseCase: GetProfileUseCase
+        private readonly getProfileUseCase: GetProfileUseCase,
+        private readonly logoutUseCase: LogoutUseCase
     ) { }
 
     login = async (req: Request, res: Response, next: NextFunction) => {
@@ -74,6 +76,24 @@ export class AuthController {
             )
         } catch (error) {
             next(error)
+        }
+    }
+
+    logout = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const tokenReceived = req.cookies.refreshToken;
+
+            if (tokenReceived) {
+                await this.logoutUseCase.execute(tokenReceived);
+            }
+
+            res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, COOKIE_OPTIONS);
+
+            return res.status(200).json(
+                ResponseHttp.success("Logged out successfully", null)
+            );
+        } catch (error) {
+            next(error);
         }
     }
 }

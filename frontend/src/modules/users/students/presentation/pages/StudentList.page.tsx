@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
-import { Add, Search, Edit } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { Add, Edit } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getStudents } from '../../infrastructure/student.service';
 import type { StudentProfile } from '../../domain/student.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const StudentList = () => {
   const navigate = useNavigate();
@@ -54,23 +56,24 @@ const StudentList = () => {
     {
       id: 'name',
       name: 'Name',
-      format: (_: any, row: StudentProfile) => row.user ? `${row.user.firstName} ${row.user.lastName}` : 'N/A'
+      format: (_: any, row: StudentProfile) =>
+        row.user ? `${row.user.firstName} ${row.user.lastName}` : 'N/A',
     },
     {
       id: 'email',
       name: 'Email',
-      format: (_: any, row: StudentProfile) => row.user?.email || 'N/A'
+      format: (_: any, row: StudentProfile) => row.user?.email || 'N/A',
     },
     {
       id: 'campus',
       name: 'Campus',
-      format: (_: any, row: StudentProfile) => row.campus?.name || 'N/A'
+      format: (_: any, row: StudentProfile) => row.campus?.name || 'N/A',
     },
     {
       id: 'studentNumber',
       name: 'Student Number',
-      format: (_: any, row: StudentProfile) => row.studentNumber || '-'
-    }
+      format: (_: any, row: StudentProfile) => row.studentNumber || '-',
+    },
   ];
 
   const actions = [
@@ -82,46 +85,22 @@ const StudentList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Students
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage student profiles and access.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/users/students/create')}
-        >
-          Add Student
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Students"
+        subtitle="Manage student profiles, enrollments, and academic credentials."
+        actionLabel="Add Student"
+        actionIcon={<Add />}
+        onAction={() => navigate('/users/students/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search students by name or email..."
+      />
 
       <ListTable
         data={data}

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
-import { Add, Search, Edit, Visibility } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { Add, Edit, Visibility } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ListTable from '../../../../../shared/components/tables/ListTable';
 import { getAcademicCycles } from '../../../cycle/infrastructure/academicCycle.service';
 import type { AcademicCycle } from '../../../cycle/domain/academicCycle.interfaces';
 import { toast } from 'react-toastify';
+import PageHeader from '../../../../../shared/components/common/PageHeader';
+import GoogleSearchBar from '../../../../../shared/components/common/GoogleSearchBar';
 
 const AcademicCycleList = () => {
   const navigate = useNavigate();
@@ -55,19 +57,29 @@ const AcademicCycleList = () => {
     {
       id: 'campus',
       name: 'Campus',
-      format: (_: any, row: AcademicCycle) => row.campus?.name || 'N/A'
+      format: (_: any, row: AcademicCycle) => row.campus?.name || 'N/A',
     },
     { id: 'year', name: 'Year' },
     { id: 'order', name: 'Order' },
     {
       id: 'startDate',
       name: 'Start Date',
-      format: (value: string) => new Date(value).toLocaleDateString()
+      format: (value: string) =>
+        new Date(value).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
     },
     {
       id: 'endDate',
       name: 'End Date',
-      format: (value: string) => new Date(value).toLocaleDateString()
+      format: (value: string) =>
+        new Date(value).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
     },
   ];
 
@@ -85,46 +97,22 @@ const AcademicCycleList = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            Academic Cycles
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your academic cycles.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('/academic/cycles/create')}
-        >
-          Create Cycle
-        </Button>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <PageHeader
+        title="Academic Cycles"
+        subtitle="Manage academic periods, semesters, and operational dates."
+        actionLabel="Create Cycle"
+        actionIcon={<Add />}
+        onAction={() => navigate('/academic/cycles/create')}
+      />
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search by name..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }
-          }}
-          sx={{ width: 300, backgroundColor: 'background.paper' }}
-        />
-        <Button type="submit" variant="outlined" disabled={loading}>
-          Search
-        </Button>
-      </Box>
+      <GoogleSearchBar
+        value={searchInput}
+        onChange={setSearchInput}
+        onSubmit={handleSearch}
+        loading={loading}
+        placeholder="Search cycles by name..."
+      />
 
       <ListTable
         data={data}

@@ -1,6 +1,15 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Alert,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { loginSchema, type LoginFormValues } from '../../domain/auth.schemas';
 import { login } from '../../infrastructure/auth.service';
 import { useAuthStore } from '../../../../core/store/auth.store';
@@ -12,6 +21,7 @@ const LoginForm = () => {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     control,
@@ -29,18 +39,31 @@ const LoginForm = () => {
     setGlobalError(null);
     try {
       const response = await login(values);
-      setAuth(response.accessToken, response.refreshToken, response.user);
+      setAuth(response.user, response.accessToken);
       navigate('/');
-      toast.success('Login successful');
+      toast.success('Signed in successfully');
     } catch (error: any) {
-      setGlobalError(error.response?.data?.message || 'Error occurred during login. Please try again.');
+      setGlobalError(
+        error.response?.data?.message || 'Invalid email or password. Please try again.'
+      );
     }
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
       {globalError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2.5,
+            borderRadius: '10px',
+            fontSize: '13px',
+            textAlign: 'left',
+            bgcolor: 'rgba(248, 113, 113, 0.1)',
+            color: '#f87171',
+            border: '0.5px solid rgba(248, 113, 113, 0.3)',
+          }}
+        >
           {globalError}
         </Alert>
       )}
@@ -55,7 +78,7 @@ const LoginForm = () => {
             required
             fullWidth
             id="email"
-            label="Email Address"
+            label="Email or Username"
             autoComplete="email"
             autoFocus
             error={!!error}
@@ -74,24 +97,58 @@ const LoginForm = () => {
             required
             fullWidth
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="current-password"
             error={!!error}
             helperText={error?.message}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                      sx={{ color: '#858687' }}
+                    >
+                      {showPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         )}
       />
 
-      <Button
-        type="submit"
-        fullWidth
-        variant="contained"
-        sx={{ mt: 3, mb: 2, height: '48px' }}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? <CircularProgress size={24} /> : 'Sign In'}
-      </Button>
+      <Box sx={{ mt: 3, mb: 1 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={isSubmitting}
+          fullWidth
+          sx={{
+            borderRadius: '10px',
+            bgcolor: '#f2f2f2',
+            color: '#333333',
+            textTransform: 'none',
+            fontWeight: 450,
+            fontSize: '14px',
+            letterSpacing: '-0.2px',
+            height: 40,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.1)',
+            '&:hover': {
+              bgcolor: '#e5e5e5',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            },
+          }}
+        >
+          {isSubmitting ? <CircularProgress size={18} color="inherit" /> : 'Sign In'}
+        </Button>
+      </Box>
     </Box>
   );
 };

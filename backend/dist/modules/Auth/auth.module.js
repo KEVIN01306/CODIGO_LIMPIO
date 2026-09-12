@@ -6,6 +6,7 @@ import { LoginUseCase } from "./application/login.usecase.js";
 import { AuthController } from "./presentation/auth.controller.js";
 import { RefreshTokenUseCase } from "./application/refresh-token.usecase.js";
 import { GetProfileUseCase } from "./application/get-profile.usecase.js";
+import { LogoutUseCase } from "./application/logout.usecase.js";
 const prisma = new PrismaClient();
 const authRepository = new PrismaAuthRespository(prisma);
 const hashProvider = new Argon2HashProvider();
@@ -13,5 +14,6 @@ const jwtProvider = new JwtProvider();
 const loginUseCase = new LoginUseCase(authRepository, jwtProvider, hashProvider);
 const refreshTokenUseCase = new RefreshTokenUseCase(authRepository, jwtProvider);
 const getProfileUseCase = new GetProfileUseCase(authRepository);
-export const authController = new AuthController(loginUseCase, refreshTokenUseCase, getProfileUseCase);
+const logoutUseCase = new LogoutUseCase(authRepository);
+export const authController = new AuthController(loginUseCase, refreshTokenUseCase, getProfileUseCase, logoutUseCase);
 //# sourceMappingURL=auth.module.js.map

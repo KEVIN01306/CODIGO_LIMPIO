@@ -1,203 +1,342 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import React, { useEffect, useState, useRef } from 'react';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import * as monaco from 'monaco-editor';
-import { getSubmissionById, syncSubmission, finishSubmission } from '../../infrastructure/submission.service';
 import { toast } from 'react-toastify';
 
+import { getSubmissionById, syncSubmission, finishSubmission } from '../../infrastructure/submission.service';
+import { parseCodeSnapshot } from '../../sandbox.utils';
+
+import { useSandboxFiles } from '../hooks/useSandboxFiles';
+import { useCodePersistence } from '../hooks/useCodePersistence';
+import { useCodeExecution } from '../hooks/useCodeExecution';
+
+import SandboxToolbar from '../components/SandboxToolbar.component';
+import SandboxFileTree from '../components/SandboxFileTree.component';
+import SandboxCodeEditor from '../components/SandboxCodeEditor.component';
+import SandboxOutput from '../components/SandboxOutput.component';
+import SandboxSubmitDialog from '../components/SandboxSubmitDialog.component';
+import SandboxWarningDialog from '../components/SandboxWarningDialog.component';
+import SandboxAIChat from '../components/SandboxAIChat.component';
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+/**
+ * SandboxEditor (page)
+ *
+ * Orchestrates the sandbox experience. Responsibilities here:
+ *   - Load submission metadata.
+ *   - Coordinate file state, persistence, and execution hooks.
+ *   - Handle anti-cheat events.
+ *   - Connect components via props/callbacks.
+ *
+ * All UI rendering is delegated to focused components.
+ * All API calls are delegated to hooks and services.
+ */
 const SandboxEditor: React.FC = () => {
-  const { submissionId } = useParams();
+  const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
 
-  const editorRef = useRef<HTMLDivElement>(null);
-  const monacoInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-
+  // ── Submission metadata ──────────────────────────────────────────────────
   const [submission, setSubmission] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Anti-cheat metrics
+  // ── UI dialogs ───────────────────────────────────────────────────────────
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [warningOpen, setWarningOpen] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
+  const [outputOpen, setOutputOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(true);
+  const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
+
+  // ── Anti-cheat counters ──────────────────────────────────────────────────
   const [tabSwitches, setTabSwitches] = useState(0);
   const [clipboardAttempts, setClipboardAttempts] = useState(0);
-  const [showWarning, setShowWarning] = useState(false);
-  const [warningMessage, setWarningMessage] = useState('');
 
-  // Initial load
+  // ── Hooks ────────────────────────────────────────────────────────────────
+  const {
+    files, selectedFile,
+    setFiles, setSelectedFile,
+    updateFileContent, selectFile,
+    createFile, createFolder, deleteFile,
+    deleteFolder, moveFile,
+  } = useSandboxFiles();
+
+  const { status: persistenceStatus, flushAndSync, clearLocalSnapshot } = useCodePersistence({
+    submissionId: submissionId ?? '',
+    files,
+    onFilesRestored: (restoredFiles) => {
+      setFiles(restoredFiles);
+      const first = Object.keys(restoredFiles)[0];
+      if (first) setSelectedFile(first);
+    },
+  });
+
+  const { execute: runCodeExecute, isRunning, result: executionResult } = useCodeExecution({
+    submissionId: submissionId ?? '',
+  });
+
+  // Flag to ignore blur events triggered around Cmd+S / Ctrl+S
+  const recentSaveShortcutRef = useRef(false);
+
+  // ── Initial Load ─────────────────────────────────────────────────────────
   useEffect(() => {
-    const fetchSubmission = async () => {
-      try {
-        if (!submissionId) return;
-        const data = await getSubmissionById(submissionId);
-
+    if (!submissionId) return;
+    getSubmissionById(submissionId)
+      .then((data) => {
         if (data.status !== 'IN_PROGRESS') {
           toast.warning('This assessment has already been submitted or flagged.');
           navigate(-1);
           return;
         }
-
         setSubmission(data);
         setTabSwitches(data.tabSwitchesCount || 0);
         setClipboardAttempts(data.clipboardAttempts || 0);
+
+        // Check if there is an active local snapshot in localStorage
+        const lang = data.assessment?.allowedLanguage || 'javascript';
+        const parsedBackend = parseCodeSnapshot(data.codeSnapshot, lang);
+        let effectiveFiles = parsedBackend;
+
+        try {
+          const raw = localStorage.getItem(`submission-code-snapshot:${submissionId}`) ||
+                      localStorage.getItem('submission-code-snapshot:latest');
+          if (raw) {
+            const parsedLocal = JSON.parse(raw);
+            if (parsedLocal?.files && typeof parsedLocal.files === 'object' && Object.keys(parsedLocal.files).length > 0) {
+              effectiveFiles = parsedLocal.files;
+            }
+          }
+        } catch (e) {
+          console.warn('Could not parse localStorage snapshot:', e);
+        }
+
+        setFiles(effectiveFiles);
+        setSelectedFile(Object.keys(effectiveFiles)[0] ?? '');
         setLoading(false);
-      } catch (error) {
+      })
+      .catch(() => {
         toast.error('Failed to load assessment data.');
         navigate(-1);
-      }
-    };
-    fetchSubmission();
+      });
   }, [submissionId, navigate]);
 
-  // Editor Initialization
-  useEffect(() => {
-    if (loading || !editorRef.current || !submission) return;
-
-    if (!monacoInstance.current) {
-      const savedCode = submission.codeSnapshot?.code || '// Write your code here\n';
-      const language = submission.assessment?.allowedLanguage || 'typescript';
-
-      monacoInstance.current = monaco.editor.create(editorRef.current, {
-        value: savedCode,
-        language: language,
-        theme: 'vs-dark',
-        automaticLayout: true,
-        minimap: { enabled: false },
-        fontSize: 14,
-      });
-    }
-
-    return () => {
-      if (monacoInstance.current) {
-        monacoInstance.current.dispose();
-        monacoInstance.current = null;
-      }
-    };
-  }, [loading, submission]);
-
-  // Anti-cheat mechanisms
+  // ── Anti-cheat ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (loading || !submission?.assessment?.strictMode) return;
 
+    const warn = (msg: string) => {
+      setWarningMessage(msg);
+      setWarningOpen(true);
+    };
+
+    const syncInfractions = (tabs: number, clips: number) => {
+      if (!submissionId) return;
+      syncSubmission(submissionId, { tabSwitchesCount: tabs, clipboardAttempts: clips })
+        .catch(console.error);
+    };
+
     const handleBlur = () => {
-      setTabSwitches(prev => {
-        const newVal = prev + 1;
-        triggerWarning('You have left the sandbox window! This incident has been recorded.');
-        syncInfractions(newVal, clipboardAttempts);
-        return newVal;
+      // If Cmd+S / Ctrl+S was recently pressed, ignore blur so it is NOT counted as a tab switch
+      if (recentSaveShortcutRef.current) return;
+
+      setTabSwitches((prev) => {
+        const next = prev + 1;
+        warn('You have left the sandbox window! This incident has been recorded.');
+        syncInfractions(next, clipboardAttempts);
+        return next;
       });
     };
 
     const handleCopy = (e: ClipboardEvent) => {
       e.preventDefault();
-      setClipboardAttempts(prev => {
-        const newVal = prev + 1;
-        triggerWarning('Copying is disabled in strict mode. This incident has been recorded.');
-        syncInfractions(tabSwitches, newVal);
-        return newVal;
+      setClipboardAttempts((prev) => {
+        const next = prev + 1;
+        warn('Copying is disabled in strict mode. This incident has been recorded.');
+        syncInfractions(tabSwitches, next);
+        return next;
       });
     };
 
     const handlePaste = (e: ClipboardEvent) => {
       e.preventDefault();
-      setClipboardAttempts(prev => {
-        const newVal = prev + 1;
-        triggerWarning('Pasting is disabled in strict mode. This incident has been recorded.');
-        syncInfractions(tabSwitches, newVal);
-        return newVal;
+      setClipboardAttempts((prev) => {
+        const next = prev + 1;
+        warn('Pasting is disabled in strict mode. This incident has been recorded.');
+        syncInfractions(tabSwitches, next);
+        return next;
       });
     };
 
     window.addEventListener('blur', handleBlur);
     window.addEventListener('copy', handleCopy);
     window.addEventListener('paste', handlePaste);
-
     return () => {
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('copy', handleCopy);
       window.removeEventListener('paste', handlePaste);
     };
-  }, [loading, submission, tabSwitches, clipboardAttempts]);
+  }, [loading, submission, tabSwitches, clipboardAttempts, submissionId]);
 
-  // Autosave code periodically
+  // ── Keyboard shortcut: Cmd+S / Ctrl+S to save, Cmd+B / Ctrl+B to toggle explorer ─
   useEffect(() => {
-    if (loading || !submissionId) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.code === 'KeyS')) {
+        e.preventDefault();
+        e.stopPropagation();
 
-    const interval = setInterval(() => {
-      if (monacoInstance.current) {
-        const currentCode = monacoInstance.current.getValue();
-        syncSubmission(submissionId, { codeSnapshot: { code: currentCode } }).catch(() => {
-          console.error("Autosave failed");
+        recentSaveShortcutRef.current = true;
+        setTimeout(() => {
+          recentSaveShortcutRef.current = false;
+        }, 1000);
+
+        flushAndSync().catch(() => {
+          // PersistenceStatusIndicator displays error state
         });
       }
-    }, 30000); // 30 seconds
 
-    return () => clearInterval(interval);
-  }, [loading, submissionId]);
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B' || e.code === 'KeyB')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsFileTreeOpen((prev) => !prev);
+      }
+    };
 
-  const triggerWarning = (msg: string) => {
-    setWarningMessage(msg);
-    setShowWarning(true);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [flushAndSync]);
+
+  // ── Run Code ─────────────────────────────────────────────────────────────
+  const handleRunCode = async () => {
+    if (!selectedFile) return;
+    setOutputOpen(true);
+    await runCodeExecute(files, selectedFile);
   };
 
-  const syncInfractions = (tabs: number, clips: number) => {
-    if (!submissionId) return;
-    syncSubmission(submissionId, {
-      tabSwitchesCount: tabs,
-      clipboardAttempts: clips
-    }).catch(console.error);
-  };
-
+  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!submissionId) return;
+    setIsSubmitting(true);
     try {
-      // Final sync before submit
-      if (monacoInstance.current) {
-        const currentCode = monacoInstance.current.getValue();
-        await syncSubmission(submissionId, { codeSnapshot: { code: currentCode } });
-      }
-
+      // Flush pending debounce — latest code must reach the backend first.
+      await flushAndSync();
       await finishSubmission(submissionId);
+      clearLocalSnapshot();
       toast.success('Assessment submitted successfully!');
-      navigate(-1);
-    } catch (error) {
-      toast.error('Failed to submit assessment.');
+      setIsSubmitting(false);
+      setSubmitDialogOpen(false);
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to submit assessment. Your work is saved locally.';
+      toast.error(msg);
+      setIsSubmitting(false);
+      setSubmitDialogOpen(false);
     }
   };
 
+  // ── Loading screen ───────────────────────────────────────────────────────
   if (loading) {
-    return <Box sx={{ p: 4, textAlign: 'center' }}>Loading Editor Environment...</Box>;
+    return (
+      <Box sx={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', color: 'text.primary', gap: 2 }}>
+        <CircularProgress size={40} sx={{ color: 'primary.main' }} />
+        <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 400 }}>Loading Editor Environment…</Typography>
+      </Box>
+    );
   }
 
+  const fileList = Object.keys(files);
+  const assessmentTitle = submission?.assessment?.title || 'Sandbox Editor';
+
   return (
-    <Box sx={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#1e1e1e' }}>
-      {/* Header */}
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#2d2d2d', color: 'white' }}>
-        <Typography variant="h6">{submission?.assessment?.title || 'Sandbox Editor'}</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          {submission?.assessment?.strictMode && (
-            <Typography variant="body2" color="error.light">
-              Strict Mode Active | Infractions: {tabSwitches + clipboardAttempts}
-            </Typography>
-          )}
-          <Button variant="contained" color="success" onClick={handleSubmit}>
-            Submit Assessment
-          </Button>
-        </Box>
+    <Box sx={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+
+      <SandboxToolbar
+        title={assessmentTitle}
+        persistenceStatus={persistenceStatus}
+        isStrictMode={!!submission?.assessment?.strictMode}
+        infractionCount={tabSwitches + clipboardAttempts}
+        isRunning={isRunning}
+        isSubmitting={isSubmitting}
+        isAIChatOpen={isAIChatOpen}
+        onToggleAIChat={() => setIsAIChatOpen((prev) => !prev)}
+        isFileTreeOpen={isFileTreeOpen}
+        onToggleFileTree={() => setIsFileTreeOpen((prev) => !prev)}
+        onRunCode={handleRunCode}
+        onSubmit={() => setSubmitDialogOpen(true)}
+      />
+
+      <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Left: Mayéutica AI Socratic Chat */}
+        <SandboxAIChat
+          submissionId={submissionId ?? ''}
+          initialHistory={submission?.chatHistory}
+          currentCode={files[selectedFile] ?? ''}
+          language={submission?.assessment?.allowedLanguage || 'javascript'}
+          lastExecutionOutput={
+            executionResult
+              ? `${executionResult.stdout || ''}${executionResult.stderr ? `\nSTDERR: ${executionResult.stderr}` : ''}`
+              : null
+          }
+          exerciseGoal={
+            [
+              submission?.assessment?.title,
+              submission?.assessment?.description,
+            ]
+              .filter(Boolean)
+              .join(' - ')
+          }
+          isOpen={isAIChatOpen}
+          onToggle={() => setIsAIChatOpen((prev) => !prev)}
+        />
+
+        {/* Center: Code Editor */}
+        <SandboxCodeEditor
+          value={files[selectedFile] ?? ''}
+          fileName={selectedFile}
+          onChange={updateFileContent}
+          onSave={flushAndSync}
+        />
+
+        {/* Right: File Explorer Tree */}
+        <SandboxFileTree
+          files={fileList}
+          selectedFile={selectedFile}
+          isOpen={isFileTreeOpen}
+          onToggle={() => setIsFileTreeOpen((prev) => !prev)}
+          onFileSelect={selectFile}
+          onCreateFile={createFile}
+          onCreateFolder={createFolder}
+          onDeleteFile={deleteFile}
+          onDeleteFolder={deleteFolder}
+          onMoveFile={moveFile}
+        />
       </Box>
 
-      {/* Editor */}
-      <Box ref={editorRef} sx={{ flex: 1, width: '100%' }} />
+      <SandboxOutput
+        open={outputOpen}
+        onClose={() => setOutputOpen(false)}
+        isRunning={isRunning}
+        result={executionResult}
+      />
 
-      {/* Warning Dialog */}
-      <Dialog open={showWarning} onClose={() => setShowWarning(false)}>
-        <DialogTitle sx={{ color: 'error.main' }}>Security Warning</DialogTitle>
-        <DialogContent>
-          <Typography>{warningMessage}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowWarning(false)} variant="contained" color="error">
-            I Understand
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SandboxSubmitDialog
+        open={submitDialogOpen}
+        isSubmitting={isSubmitting}
+        onClose={() => setSubmitDialogOpen(false)}
+        onConfirm={handleSubmit}
+      />
+
+      <SandboxWarningDialog
+        open={warningOpen}
+        message={warningMessage}
+        onClose={() => setWarningOpen(false)}
+      />
     </Box>
   );
 };

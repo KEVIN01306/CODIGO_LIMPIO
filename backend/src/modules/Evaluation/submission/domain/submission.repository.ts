@@ -5,4 +5,6 @@ export interface SubmissionRepository {
     create(data: { assessmentId: string; studentId: string }): Promise<SubmissionEntity>;
     update(id: string, data: any): Promise<SubmissionEntity | null>;
     findById(id: string): Promise<SubmissionEntity | null>;
+    findByAssessment(assessmentId: string): Promise<SubmissionEntity[]>;
+    updateGrade(id: string, totalScore: number, feedback?: string): Promise<SubmissionEntity | null>;
 }

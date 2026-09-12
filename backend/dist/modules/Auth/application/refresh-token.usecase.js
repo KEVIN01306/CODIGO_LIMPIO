@@ -27,6 +27,7 @@ export class RefreshTokenUseCase {
             accessToken,
             refreshToken,
             user: {
+                id: user.id,
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
                 tenantId: user.tenantId,

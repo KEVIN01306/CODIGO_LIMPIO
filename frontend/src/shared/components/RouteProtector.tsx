@@ -9,10 +9,14 @@ interface RouteProtectorProps {
 }
 
 export const RouteProtector = ({ children, requiredPermission }: RouteProtectorProps) => {
-    const { user, isAuthenticated } = useAuthStore();
+    const { user, isAuthenticated, status } = useAuthStore();
     const location = useLocation();
 
-    if (!isAuthenticated) {
+    if (status === 'loading') {
+        return null;
+    }
+
+    if (!isAuthenticated || status === 'unauthenticated') {
         return <Navigate to="/auth/login" state={{ from: location }} replace />;
     }
 
