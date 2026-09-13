@@ -1,9 +1,12 @@
 import { EventEmitter } from 'events';
 
 export interface SubmissionChatEvent {
-  type: 'STUDENT_ASKED' | 'CHAT_UPDATED';
+  type: 'STUDENT_ASKED' | 'CHAT_UPDATED' | 'SUBMISSION_GRADED' | 'SUBMISSION_EVALUATED';
   submissionId: string;
-  chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+  chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
+  totalScore?: number;
+  feedback?: string;
+  status?: string;
   timestamp: string;
 }
 

@@ -9,6 +9,8 @@ import type { UpdateCodeSnapshotUseCase } from '../application/update-code-snaps
 import type { RunCodeUseCase } from '../application/run-code.usecase.js';
 import type { ListAssessmentSubmissionsUseCase } from '../application/list-assessment-submissions.usecase.js';
 import type { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
+import type { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
+import type { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
 import AppError from '@shared/errors/AppError.js';
 import { PrismaClient } from '@prisma/client';
 import { submissionEventBus } from '../infrastructure/submission-events.bus.js';
@@ -24,7 +26,9 @@ export class SubmissionController extends BaseController {
         private readonly updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase,
         private readonly runCodeUseCase: RunCodeUseCase,
         private readonly listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase,
-        private readonly gradeSubmissionUseCase: GradeSubmissionUseCase
+        private readonly gradeSubmissionUseCase: GradeSubmissionUseCase,
+        private readonly getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase,
+        private readonly listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase
     ) { super(); }
 
     start = async (req: Request, res: Response, next: NextFunction) => {
@@ -125,7 +129,62 @@ export class SubmissionController extends BaseController {
                 throw new AppError('totalScore is required and must be a number', 'BAD_REQUEST', 400);
             }
             const updated = await this.gradeSubmissionUseCase.execute(id, Number(totalScore), feedback);
+
+            // Notify real-time listeners that the submission has been graded
+            try {
+                submissionEventBus.publish({
+                    type: 'SUBMISSION_GRADED',
+                    submissionId: id,
+                    totalScore: Number(totalScore),
+                    feedback,
+                    status: 'EVALUATED',
+                    timestamp: new Date().toISOString()
+                });
+            } catch (err) {
+                console.warn('Could not broadcast SUBMISSION_GRADED event:', err);
+            }
+
             return res.status(200).json(ResponseHttp.success('Submission graded successfully', updated));
+        } catch (error) { next(error); }
+    }
+
+    /**
+     * GET /my-submissions
+     * Returns all submissions belonging to the authenticated student, optionally filtered by offeringId.
+     */
+    getMySubmissions = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const user = (req as any).user;
+            const offeringId = req.query.offeringId as string | undefined;
+            const data = await this.listStudentSubmissionsUseCase.execute(user.id, offeringId);
+            return res.status(200).json(ResponseHttp.success('Student submissions fetched successfully', data));
+        } catch (error) { next(error); }
+    }
+
+    /**
+     * GET /:id/feedback
+     * Returns sanitized, student-authorized evaluation feedback for a submission.
+     * Strictly verifies student ownership.
+     */
+    getFeedback = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id as string;
+            const user = (req as any).user;
+            const feedback = await this.getStudentSubmissionFeedbackUseCase.execute(id, user.id);
+            return res.status(200).json(ResponseHttp.success('Submission feedback fetched successfully', feedback));
+        } catch (error) { next(error); }
+    }
+
+    /**
+     * GET /assessment/:assessmentId/feedback
+     * Returns sanitized feedback for the authenticated student's submission on this assessment.
+     */
+    getFeedbackByAssessment = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const assessmentId = req.params.assessmentId as string;
+            const user = (req as any).user;
+            const feedback = await this.getStudentSubmissionFeedbackUseCase.executeByAssessment(assessmentId, user.id);
+            return res.status(200).json(ResponseHttp.success('Submission feedback fetched successfully', feedback));
         } catch (error) { next(error); }
     }
 

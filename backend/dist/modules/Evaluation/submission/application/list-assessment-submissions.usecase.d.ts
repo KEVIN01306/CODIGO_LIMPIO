@@ -52,6 +52,7 @@ export declare class ListAssessmentSubmissionsUseCase {
                 feedback: any;
                 testOutput: any;
                 codeSnapshot: any;
+                chatHistory: any;
                 filesCount: number;
             } | null;
         }[];

@@ -15,7 +15,8 @@ export class SubmissionEntity {
     totalScore;
     testOutput;
     aiFeedback;
-    constructor(id, assessmentId, studentId, status, startedAt, submittedAt, tabSwitchesCount, clipboardAttempts, codeSnapshot, assessment, student, testsPassedScore, aiQualityScore, totalScore, testOutput, aiFeedback) {
+    chatHistory;
+    constructor(id, assessmentId, studentId, status, startedAt, submittedAt, tabSwitchesCount, clipboardAttempts, codeSnapshot, assessment, student, testsPassedScore, aiQualityScore, totalScore, testOutput, aiFeedback, chatHistory) {
         this.id = id;
         this.assessmentId = assessmentId;
         this.studentId = studentId;
@@ -32,6 +33,7 @@ export class SubmissionEntity {
         this.totalScore = totalScore;
         this.testOutput = testOutput;
         this.aiFeedback = aiFeedback;
+        this.chatHistory = chatHistory;
     }
 }
 //# sourceMappingURL=submission.entity.js.map

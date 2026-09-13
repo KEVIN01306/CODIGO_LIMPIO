@@ -87,6 +87,7 @@ export class ListAssessmentSubmissionsUseCase {
                     feedback: submission.aiFeedback || gradeRecord?.feedback || null,
                     testOutput: submission.testOutput,
                     codeSnapshot: submission.codeSnapshot,
+                    chatHistory: submission.chatHistory || [],
                     filesCount: submission.codeSnapshot && typeof submission.codeSnapshot === 'object'
                         ? Object.keys(submission.codeSnapshot).length
                         : 0

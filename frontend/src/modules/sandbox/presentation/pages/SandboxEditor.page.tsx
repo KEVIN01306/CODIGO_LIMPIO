@@ -85,8 +85,13 @@ const SandboxEditor: React.FC = () => {
     getSubmissionById(submissionId)
       .then((data) => {
         if (data.status !== 'IN_PROGRESS') {
-          toast.warning('This assessment has already been submitted or flagged.');
-          navigate(-1);
+          if (data.assessment?.offeringId && (data.assessmentId || data.assessment?.id)) {
+            toast.info('This assessment has already been submitted. Redirecting to feedback...');
+            navigate(`/my-courses/${data.assessment.offeringId}/assessments/${data.assessmentId || data.assessment.id}/feedback`, { replace: true });
+          } else {
+            toast.warning('This assessment has already been submitted or flagged.');
+            navigate(-1);
+          }
           return;
         }
         setSubmission(data);

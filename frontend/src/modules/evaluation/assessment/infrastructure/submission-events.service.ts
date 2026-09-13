@@ -5,9 +5,12 @@ import type { ChatMessage } from '../../../ai/domain/ai.types';
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface SubmissionLiveEvent {
-  type: 'CONNECTED' | 'STUDENT_ASKED' | 'CHAT_UPDATED';
+  type: 'CONNECTED' | 'STUDENT_ASKED' | 'CHAT_UPDATED' | 'SUBMISSION_GRADED' | 'SUBMISSION_EVALUATED';
   submissionId: string;
-  chatHistory: ChatMessage[];
+  chatHistory?: ChatMessage[];
+  totalScore?: number;
+  feedback?: string;
+  status?: string;
   timestamp?: string;
 }
 

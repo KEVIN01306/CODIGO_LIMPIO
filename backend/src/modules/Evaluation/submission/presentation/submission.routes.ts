@@ -9,6 +9,8 @@ import { UpdateCodeSnapshotUseCase } from '../application/update-code-snapshot.u
 import { RunCodeUseCase } from '../application/run-code.usecase.js';
 import { ListAssessmentSubmissionsUseCase } from '../application/list-assessment-submissions.usecase.js';
 import { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
+import { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
+import { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
 import { SubmissionController } from './submission.controller.js';
 import { startSubmissionSchema, syncSubmissionSchema, updateCodeSnapshotSchema, runCodeSchema } from '../domain/submission.schemas.js';
 import { AuthMiddleware } from '../../../../app/middleware/Auth.middleware.js';
@@ -26,6 +28,8 @@ const updateCodeSnapshotUseCase = new UpdateCodeSnapshotUseCase(repository);
 const runCodeUseCase = new RunCodeUseCase(repository);
 const listAssessmentSubmissionsUseCase = new ListAssessmentSubmissionsUseCase(repository, prisma);
 const gradeSubmissionUseCase = new GradeSubmissionUseCase(repository);
+const getStudentSubmissionFeedbackUseCase = new GetStudentSubmissionFeedbackUseCase(repository);
+const listStudentSubmissionsUseCase = new ListStudentSubmissionsUseCase(repository);
 
 const controller = new SubmissionController(
     startUseCase,
@@ -35,7 +39,9 @@ const controller = new SubmissionController(
     updateCodeSnapshotUseCase,
     runCodeUseCase,
     listAssessmentSubmissionsUseCase,
-    gradeSubmissionUseCase
+    gradeSubmissionUseCase,
+    getStudentSubmissionFeedbackUseCase,
+    listStudentSubmissionsUseCase
 );
 
 const authMiddleware = new AuthMiddleware();
@@ -64,7 +70,21 @@ submissionRoutes.post(
     controller.finish
 );
 
-// Get all student submissions for an assessment (before /:id)
+// Get calling student's submissions for an offering (before /:id)
+submissionRoutes.get(
+    '/my-submissions',
+    authMiddleware.checkPermission(['assessments:read']),
+    controller.getMySubmissions
+);
+
+// Get sanitized feedback for student's submission on an assessment (before /:id)
+submissionRoutes.get(
+    '/assessment/:assessmentId/feedback',
+    authMiddleware.checkPermission(['assessments:read']),
+    controller.getFeedbackByAssessment
+);
+
+// Get all student submissions for an assessment (teacher view, before /:id)
 submissionRoutes.get(
     '/assessment/:assessmentId',
     authMiddleware.checkPermission(['assessments:read']),
@@ -82,6 +102,13 @@ submissionRoutes.get(
     '/:id/events',
     authMiddleware.checkPermission(['assessments:read']),
     controller.subscribeEvents
+);
+
+// Get student's sanitized evaluation feedback for a submission
+submissionRoutes.get(
+    '/:id/feedback',
+    authMiddleware.checkPermission(['assessments:read']),
+    controller.getFeedback
 );
 
 submissionRoutes.get(

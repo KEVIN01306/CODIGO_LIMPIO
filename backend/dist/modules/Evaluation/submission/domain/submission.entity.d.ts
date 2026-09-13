@@ -15,6 +15,7 @@ export declare class SubmissionEntity {
     readonly totalScore?: number | null | undefined;
     readonly testOutput?: any | undefined;
     readonly aiFeedback?: any | undefined;
-    constructor(id: string, assessmentId: string, studentId: string, status: 'IN_PROGRESS' | 'SUBMITTED' | 'EVALUATED' | 'FLAGGED', startedAt: Date, submittedAt: Date | null, tabSwitchesCount: number, clipboardAttempts: number, codeSnapshot: any, assessment?: any | undefined, student?: any | undefined, testsPassedScore?: number | null | undefined, aiQualityScore?: number | null | undefined, totalScore?: number | null | undefined, testOutput?: any | undefined, aiFeedback?: any | undefined);
+    readonly chatHistory?: any | undefined;
+    constructor(id: string, assessmentId: string, studentId: string, status: 'IN_PROGRESS' | 'SUBMITTED' | 'EVALUATED' | 'FLAGGED', startedAt: Date, submittedAt: Date | null, tabSwitchesCount: number, clipboardAttempts: number, codeSnapshot: any, assessment?: any | undefined, student?: any | undefined, testsPassedScore?: number | null | undefined, aiQualityScore?: number | null | undefined, totalScore?: number | null | undefined, testOutput?: any | undefined, aiFeedback?: any | undefined, chatHistory?: any | undefined);
 }
 //# sourceMappingURL=submission.entity.d.ts.map

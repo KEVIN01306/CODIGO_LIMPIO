@@ -8,6 +8,8 @@ import type { UpdateCodeSnapshotUseCase } from '../application/update-code-snaps
 import type { RunCodeUseCase } from '../application/run-code.usecase.js';
 import type { ListAssessmentSubmissionsUseCase } from '../application/list-assessment-submissions.usecase.js';
 import type { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
+import type { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
+import type { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
 export declare class SubmissionController extends BaseController {
     private readonly startUseCase;
     private readonly syncUseCase;
@@ -17,7 +19,9 @@ export declare class SubmissionController extends BaseController {
     private readonly runCodeUseCase;
     private readonly listAssessmentSubmissionsUseCase;
     private readonly gradeSubmissionUseCase;
-    constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase);
+    private readonly getStudentSubmissionFeedbackUseCase;
+    private readonly listStudentSubmissionsUseCase;
+    constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase);
     start: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     sync: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     finish: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
@@ -46,5 +50,26 @@ export declare class SubmissionController extends BaseController {
      * Updates the submission grade / totalScore and feedback.
      */
     grade: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    /**
+     * GET /my-submissions
+     * Returns all submissions belonging to the authenticated student, optionally filtered by offeringId.
+     */
+    getMySubmissions: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    /**
+     * GET /:id/feedback
+     * Returns sanitized, student-authorized evaluation feedback for a submission.
+     * Strictly verifies student ownership.
+     */
+    getFeedback: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    /**
+     * GET /assessment/:assessmentId/feedback
+     * Returns sanitized feedback for the authenticated student's submission on this assessment.
+     */
+    getFeedbackByAssessment: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    /**
+     * GET /:id/events
+     * SSE stream for real-time submission updates (such as AI conversation messages).
+     */
+    subscribeEvents: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
 //# sourceMappingURL=submission.controller.d.ts.map

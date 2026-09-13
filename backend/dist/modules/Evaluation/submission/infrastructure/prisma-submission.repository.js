@@ -5,7 +5,7 @@ export class PrismaSubmissionRepository {
         this.prisma = prisma;
     }
     toEntity(record) {
-        return new SubmissionEntity(record.id, record.assessmentId, record.studentId, record.status, record.startedAt, record.submittedAt, record.tabSwitchesCount, record.clipboardAttempts, record.codeSnapshot, record.assessment, record.student, record.testsPassedScore !== null && record.testsPassedScore !== undefined ? Number(record.testsPassedScore) : null, record.aiQualityScore !== null && record.aiQualityScore !== undefined ? Number(record.aiQualityScore) : null, record.totalScore !== null && record.totalScore !== undefined ? Number(record.totalScore) : null, record.testOutput, record.aiFeedback);
+        return new SubmissionEntity(record.id, record.assessmentId, record.studentId, record.status, record.startedAt, record.submittedAt, record.tabSwitchesCount, record.clipboardAttempts, record.codeSnapshot, record.assessment, record.student, record.testsPassedScore !== null && record.testsPassedScore !== undefined ? Number(record.testsPassedScore) : null, record.aiQualityScore !== null && record.aiQualityScore !== undefined ? Number(record.aiQualityScore) : null, record.totalScore !== null && record.totalScore !== undefined ? Number(record.totalScore) : null, record.testOutput, record.aiFeedback, record.chatHistory);
     }
     async findByAssessmentAndStudent(assessmentId, studentId) {
         const record = await this.prisma.submission.findFirst({

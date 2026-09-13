@@ -138,3 +138,64 @@ export const gradeSubmission = async (
   return response.data.data;
 };
 
+export interface StudentEvaluationFinding {
+  title: string;
+  description: string;
+  severity?: string;
+}
+
+export interface StudentSubmissionFeedback {
+  submissionId: string;
+  assessmentId: string;
+  assessmentTitle: string;
+  assessmentDescription: string | null;
+  allowedLanguage: string;
+  maxScore: number;
+  weight: number | null;
+  status: 'IN_PROGRESS' | 'SUBMITTED' | 'EVALUATED' | 'FLAGGED';
+  startedAt: string;
+  submittedAt: string | null;
+  submittedCode: Record<string, string> | null;
+  score: number | null;
+  teacherComments: string | null;
+  evaluationFindings: StudentEvaluationFinding[];
+  testsPassedScore: number | null;
+  aiQualityScore: number | null;
+  testOutput: any;
+}
+
+export interface MySubmissionItem {
+  id: string;
+  assessmentId: string;
+  status: 'IN_PROGRESS' | 'SUBMITTED' | 'EVALUATED' | 'FLAGGED';
+  startedAt: string;
+  submittedAt: string | null;
+  totalScore: number | null;
+  maxScore?: number;
+  assessmentTitle?: string;
+  feedback?: string | null;
+  hasCodeSnapshot: boolean;
+}
+
+export const getStudentSubmissionFeedback = async (
+  submissionId: string
+): Promise<StudentSubmissionFeedback> => {
+  const response = await api.get(`${API_URL}/${submissionId}/feedback`);
+  return response.data.data;
+};
+
+export const getStudentSubmissionFeedbackByAssessment = async (
+  assessmentId: string
+): Promise<StudentSubmissionFeedback> => {
+  const response = await api.get(`${API_URL}/assessment/${assessmentId}/feedback`);
+  return response.data.data;
+};
+
+export const getMySubmissions = async (params?: {
+  offeringId?: string;
+}): Promise<MySubmissionItem[]> => {
+  const response = await api.get(`${API_URL}/my-submissions`, { params });
+  return response.data.data;
+};
+
+

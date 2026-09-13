@@ -2,6 +2,7 @@ import ResponseHttp from '../../../../app/http/response.http.js';
 import BaseController from '../../../../presentation/base.controller.js';
 import AppError from '../../../../shared/errors/AppError.js';
 import { PrismaClient } from '@prisma/client';
+import { submissionEventBus } from '../infrastructure/submission-events.bus.js';
 const prisma = new PrismaClient();
 export class SubmissionController extends BaseController {
     startUseCase;
@@ -12,7 +13,9 @@ export class SubmissionController extends BaseController {
     runCodeUseCase;
     listAssessmentSubmissionsUseCase;
     gradeSubmissionUseCase;
-    constructor(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase) {
+    getStudentSubmissionFeedbackUseCase;
+    listStudentSubmissionsUseCase;
+    constructor(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase) {
         super();
         this.startUseCase = startUseCase;
         this.syncUseCase = syncUseCase;
@@ -22,6 +25,8 @@ export class SubmissionController extends BaseController {
         this.runCodeUseCase = runCodeUseCase;
         this.listAssessmentSubmissionsUseCase = listAssessmentSubmissionsUseCase;
         this.gradeSubmissionUseCase = gradeSubmissionUseCase;
+        this.getStudentSubmissionFeedbackUseCase = getStudentSubmissionFeedbackUseCase;
+        this.listStudentSubmissionsUseCase = listStudentSubmissionsUseCase;
     }
     start = async (req, res, next) => {
         try {
@@ -133,7 +138,122 @@ export class SubmissionController extends BaseController {
                 throw new AppError('totalScore is required and must be a number', 'BAD_REQUEST', 400);
             }
             const updated = await this.gradeSubmissionUseCase.execute(id, Number(totalScore), feedback);
+            // Notify real-time listeners that the submission has been graded
+            try {
+                submissionEventBus.publish({
+                    type: 'SUBMISSION_GRADED',
+                    submissionId: id,
+                    totalScore: Number(totalScore),
+                    feedback,
+                    status: 'EVALUATED',
+                    timestamp: new Date().toISOString()
+                });
+            }
+            catch (err) {
+                console.warn('Could not broadcast SUBMISSION_GRADED event:', err);
+            }
             return res.status(200).json(ResponseHttp.success('Submission graded successfully', updated));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    /**
+     * GET /my-submissions
+     * Returns all submissions belonging to the authenticated student, optionally filtered by offeringId.
+     */
+    getMySubmissions = async (req, res, next) => {
+        try {
+            const user = req.user;
+            const offeringId = req.query.offeringId;
+            const data = await this.listStudentSubmissionsUseCase.execute(user.id, offeringId);
+            return res.status(200).json(ResponseHttp.success('Student submissions fetched successfully', data));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    /**
+     * GET /:id/feedback
+     * Returns sanitized, student-authorized evaluation feedback for a submission.
+     * Strictly verifies student ownership.
+     */
+    getFeedback = async (req, res, next) => {
+        try {
+            const id = req.params.id;
+            const user = req.user;
+            const feedback = await this.getStudentSubmissionFeedbackUseCase.execute(id, user.id);
+            return res.status(200).json(ResponseHttp.success('Submission feedback fetched successfully', feedback));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    /**
+     * GET /assessment/:assessmentId/feedback
+     * Returns sanitized feedback for the authenticated student's submission on this assessment.
+     */
+    getFeedbackByAssessment = async (req, res, next) => {
+        try {
+            const assessmentId = req.params.assessmentId;
+            const user = req.user;
+            const feedback = await this.getStudentSubmissionFeedbackUseCase.executeByAssessment(assessmentId, user.id);
+            return res.status(200).json(ResponseHttp.success('Submission feedback fetched successfully', feedback));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    /**
+     * GET /:id/events
+     * SSE stream for real-time submission updates (such as AI conversation messages).
+     */
+    subscribeEvents = async (req, res, next) => {
+        try {
+            const id = req.params.id;
+            const user = req.user;
+            const submission = await prisma.submission.findUnique({
+                where: { id },
+                include: { assessment: true }
+            });
+            if (!submission) {
+                throw new AppError('Submission not found', 'NOT_FOUND', 404);
+            }
+            // Verify access: student owner OR user with assessments:read permission
+            const studentProfile = await prisma.studentProfile.findUnique({
+                where: { userId: user.id }
+            });
+            const isStudentOwner = studentProfile && submission.studentId === studentProfile.id;
+            const hasTeacherPermission = user.permissions && user.permissions.includes('assessments:read');
+            if (!isStudentOwner && !hasTeacherPermission) {
+                throw new AppError('Not authorized to observe this submission', 'FORBIDDEN', 403);
+            }
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            if (typeof res.flushHeaders === 'function') {
+                res.flushHeaders();
+            }
+            // Send initial connected state with current authoritative chatHistory
+            res.write(`data: ${JSON.stringify({
+                type: 'CONNECTED',
+                submissionId: id,
+                chatHistory: submission.chatHistory || []
+            })}\n\n`);
+            const unsubscribe = submissionEventBus.subscribe(id, (event) => {
+                if (!res.writableEnded) {
+                    res.write(`data: ${JSON.stringify(event)}\n\n`);
+                }
+            });
+            const keepAliveInterval = setInterval(() => {
+                if (!res.writableEnded) {
+                    res.write(': keepalive\n\n');
+                }
+            }, 25000);
+            req.on('close', () => {
+                clearInterval(keepAliveInterval);
+                unsubscribe();
+            });
         }
         catch (error) {
             next(error);
