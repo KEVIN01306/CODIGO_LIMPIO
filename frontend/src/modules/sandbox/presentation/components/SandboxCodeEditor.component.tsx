@@ -33,10 +33,16 @@ const SandboxCodeEditor: React.FC<Props> = ({ value, fileName, onChange, onSave 
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const onSaveRef = useRef(onSave);
+  const onChangeRef = useRef(onChange);
+  const isSettingValueRef = useRef(false);
 
   useEffect(() => {
     onSaveRef.current = onSave;
   }, [onSave]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // ── Create editor on mount ─────────────────────────────────────────────
   useEffect(() => {
@@ -55,7 +61,8 @@ const SandboxCodeEditor: React.FC<Props> = ({ value, fileName, onChange, onSave 
     });
 
     editorRef.current.onDidChangeModelContent(() => {
-      onChange(editorRef.current?.getValue() ?? '');
+      if (isSettingValueRef.current) return;
+      onChangeRef.current?.(editorRef.current?.getValue() ?? '');
     });
 
     // Intercept Cmd+S / Ctrl+S inside Monaco to trigger save and prevent browser dialog
@@ -78,7 +85,9 @@ const SandboxCodeEditor: React.FC<Props> = ({ value, fileName, onChange, onSave 
     if (current !== value) {
       // Preserve cursor position when the update comes from file-switching.
       const pos = editorRef.current.getPosition();
+      isSettingValueRef.current = true;
       editorRef.current.setValue(value);
+      isSettingValueRef.current = false;
       if (pos) editorRef.current.setPosition(pos);
     }
 

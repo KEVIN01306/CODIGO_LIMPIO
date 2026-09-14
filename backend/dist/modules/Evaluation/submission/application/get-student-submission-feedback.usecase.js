@@ -89,12 +89,29 @@ export class GetStudentSubmissionFeedbackUseCase {
         if (typeof aiFeedback === 'string')
             return aiFeedback.trim();
         if (typeof aiFeedback === 'object') {
+            if (typeof aiFeedback.teacherComments === 'string')
+                return aiFeedback.teacherComments.trim();
             if (typeof aiFeedback.comments === 'string')
                 return aiFeedback.comments.trim();
             if (typeof aiFeedback.feedback === 'string')
                 return aiFeedback.feedback.trim();
-            if (typeof aiFeedback.teacherComments === 'string')
-                return aiFeedback.teacherComments.trim();
+            if (typeof aiFeedback.aiFeedback === 'string')
+                return aiFeedback.aiFeedback.trim();
+        }
+        return null;
+    }
+    extractAiFeedback(aiFeedback) {
+        if (!aiFeedback)
+            return null;
+        if (typeof aiFeedback === 'string')
+            return aiFeedback.trim();
+        if (typeof aiFeedback === 'object') {
+            if (typeof aiFeedback.aiFeedback === 'string')
+                return aiFeedback.aiFeedback.trim();
+            if (typeof aiFeedback.feedback === 'string')
+                return aiFeedback.feedback.trim();
+            if (typeof aiFeedback.comments === 'string')
+                return aiFeedback.comments.trim();
         }
         return null;
     }
@@ -102,12 +119,14 @@ export class GetStudentSubmissionFeedbackUseCase {
         const assessment = submission.assessment || {};
         const isEvaluated = submission.status === 'EVALUATED';
         let teacherComments = null;
+        let aiFeedbackText = null;
         let findings = [];
         let score = null;
         if (isEvaluated) {
             score = submission.totalScore !== null && submission.totalScore !== undefined
                 ? Number(submission.totalScore)
                 : null;
+            aiFeedbackText = this.extractAiFeedback(submission.aiFeedback);
             teacherComments = this.extractTeacherComments(submission.aiFeedback) || gradeRecordFeedback || null;
             findings = this.extractFindings(submission.aiFeedback, submission.testOutput);
         }
@@ -125,6 +144,7 @@ export class GetStudentSubmissionFeedbackUseCase {
             // Code snapshot is the evaluated/submitted snapshot
             submittedCode: submission.codeSnapshot || null,
             score,
+            aiFeedback: aiFeedbackText,
             teacherComments,
             evaluationFindings: findings,
             testsPassedScore: isEvaluated ? (submission.testsPassedScore ? Number(submission.testsPassedScore) : null) : null,

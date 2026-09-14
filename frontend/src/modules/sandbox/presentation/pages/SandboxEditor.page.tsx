@@ -3,11 +3,19 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import { useAuthStore } from '../../../../core/store/auth.store';
 import { getSubmissionById, syncSubmission, finishSubmission } from '../../infrastructure/submission.service';
 import { parseCodeSnapshot } from '../../sandbox.utils';
 
 import { useSandboxFiles } from '../hooks/useSandboxFiles';
-import { useCodePersistence } from '../hooks/useCodePersistence';
+import {
+  useCodePersistence,
+  isAssessmentSessionActive,
+  setAssessmentSessionActive,
+  clearAssessmentSessionActive,
+  clearSubmissionLocalStorage,
+  getSnapshotKey,
+} from '../hooks/useCodePersistence';
 import { useCodeExecution } from '../hooks/useCodeExecution';
 
 import SandboxToolbar from '../components/SandboxToolbar.component';
@@ -35,6 +43,7 @@ import SandboxAIChat from '../components/SandboxAIChat.component';
 const SandboxEditor: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   // ── Submission metadata ──────────────────────────────────────────────────
   const [submission, setSubmission] = useState<any>(null);
@@ -64,11 +73,15 @@ const SandboxEditor: React.FC = () => {
 
   const { status: persistenceStatus, flushAndSync, clearLocalSnapshot } = useCodePersistence({
     submissionId: submissionId ?? '',
+    userId: user?.id,
     files,
     onFilesRestored: (restoredFiles) => {
-      setFiles(restoredFiles);
-      const first = Object.keys(restoredFiles)[0];
-      if (first) setSelectedFile(first);
+      // Only restore on mount if this is an active session (e.g. browser refresh F5)
+      if (submissionId && isAssessmentSessionActive(submissionId)) {
+        setFiles(restoredFiles);
+        const first = Object.keys(restoredFiles)[0];
+        if (first) setSelectedFile(first);
+      }
     },
   });
 
@@ -85,6 +98,10 @@ const SandboxEditor: React.FC = () => {
     getSubmissionById(submissionId)
       .then((data) => {
         if (data.status !== 'IN_PROGRESS') {
+          // If already submitted or flagged, ensure local files are wiped
+          clearSubmissionLocalStorage(submissionId, user?.id);
+          clearAssessmentSessionActive(submissionId);
+
           if (data.assessment?.offeringId && (data.assessmentId || data.assessment?.id)) {
             toast.info('This assessment has already been submitted. Redirecting to feedback...');
             navigate(`/my-courses/${data.assessment.offeringId}/assessments/${data.assessmentId || data.assessment.id}/feedback`, { replace: true });
@@ -98,22 +115,35 @@ const SandboxEditor: React.FC = () => {
         setTabSwitches(data.tabSwitchesCount || 0);
         setClipboardAttempts(data.clipboardAttempts || 0);
 
-        // Check if there is an active local snapshot in localStorage
         const lang = data.assessment?.allowedLanguage || 'javascript';
         const parsedBackend = parseCodeSnapshot(data.codeSnapshot, lang);
         let effectiveFiles = parsedBackend;
 
-        try {
-          const raw = localStorage.getItem(`submission-code-snapshot:${submissionId}`) ||
-                      localStorage.getItem('submission-code-snapshot:latest');
-          if (raw) {
-            const parsedLocal = JSON.parse(raw);
-            if (parsedLocal?.files && typeof parsedLocal.files === 'object' && Object.keys(parsedLocal.files).length > 0) {
-              effectiveFiles = parsedLocal.files;
+        // Lifecycle differentiation:
+        // isRefresh is true if sessionStorage contains the active session marker (browser reload F5).
+        // If false, student is entering/re-entering afresh -> discard any old localStorage files
+        // and initialize purely from authoritative backend Submission.
+        const isRefresh = isAssessmentSessionActive(submissionId);
+
+        if (isRefresh) {
+          try {
+            const scopedKey = getSnapshotKey(submissionId, user?.id);
+            const fallbackKey = getSnapshotKey(submissionId);
+            const raw = localStorage.getItem(scopedKey) || localStorage.getItem(fallbackKey);
+            if (raw) {
+              const parsedLocal = JSON.parse(raw);
+              if (parsedLocal?.files && typeof parsedLocal.files === 'object' && Object.keys(parsedLocal.files).length > 0) {
+                effectiveFiles = parsedLocal.files;
+              }
             }
+          } catch (e) {
+            console.warn('Could not parse localStorage snapshot:', e);
           }
-        } catch (e) {
-          console.warn('Could not parse localStorage snapshot:', e);
+        } else {
+          // Clean any stale local files from previous sessions
+          clearSubmissionLocalStorage(submissionId, user?.id);
+          // Register this tab as an active session
+          setAssessmentSessionActive(submissionId);
         }
 
         setFiles(effectiveFiles);
@@ -124,7 +154,22 @@ const SandboxEditor: React.FC = () => {
         toast.error('Failed to load assessment data.');
         navigate(-1);
       });
-  }, [submissionId, navigate]);
+  }, [submissionId, user?.id, navigate]);
+
+  // ── Navigation / Unmount Cleanup ─────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (!submissionId) return;
+      // Check if student navigated away from sandbox route
+      const currentPath = window.location.pathname;
+      const isStillInSandbox = currentPath.startsWith(`/sandbox/${submissionId}`);
+      if (!isStillInSandbox) {
+        // Leaving assessment: clean up temporary localStorage files sequentially
+        clearSubmissionLocalStorage(submissionId, user?.id);
+        clearAssessmentSessionActive(submissionId);
+      }
+    };
+  }, [submissionId, user?.id]);
 
   // ── Anti-cheat ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -225,10 +270,13 @@ const SandboxEditor: React.FC = () => {
     if (!submissionId) return;
     setIsSubmitting(true);
     try {
-      // Flush pending debounce — latest code must reach the backend first.
+      // 1. Flush pending debounce — latest code must reach the backend first.
       await flushAndSync();
-      await finishSubmission(submissionId);
+      // 2. Finalize submission on backend with entryFile and code files
+      await finishSubmission(submissionId, { entryFile: selectedFile, codeSnapshot: files });
+      // 3. Clear localStorage files sequentially ONLY after backend confirms success
       clearLocalSnapshot();
+      clearAssessmentSessionActive(submissionId);
       toast.success('Assessment submitted successfully!');
       setIsSubmitting(false);
       setSubmitDialogOpen(false);
@@ -238,10 +286,29 @@ const SandboxEditor: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
+      // 4. Failed submission: DO NOT clear localStorage. Keep work and allow retry.
       const msg = err?.response?.data?.message || err?.message || 'Failed to submit assessment. Your work is saved locally.';
       toast.error(msg);
       setIsSubmitting(false);
       setSubmitDialogOpen(false);
+    }
+  };
+
+  // ── Exit Assessment ──────────────────────────────────────────────────────
+  const handleExit = async () => {
+    if (!submissionId) return;
+    try {
+      // Force synchronization of any pending changes before leaving
+      await flushAndSync();
+    } catch (err) {
+      console.warn('Could not sync changes before exit:', err);
+    }
+    clearLocalSnapshot();
+    clearAssessmentSessionActive(submissionId);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/dashboard');
     }
   };
 
@@ -274,6 +341,7 @@ const SandboxEditor: React.FC = () => {
         onToggleFileTree={() => setIsFileTreeOpen((prev) => !prev)}
         onRunCode={handleRunCode}
         onSubmit={() => setSubmitDialogOpen(true)}
+        onExit={handleExit}
       />
 
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -281,7 +349,19 @@ const SandboxEditor: React.FC = () => {
         <SandboxAIChat
           submissionId={submissionId ?? ''}
           initialHistory={submission?.chatHistory}
-          currentCode={files[selectedFile] ?? ''}
+          currentCode={
+            selectedFile && files[selectedFile] !== undefined
+              ? `=== Active File (${selectedFile}) ===\n${files[selectedFile]}${
+                  Object.entries(files).filter(([name]) => name !== selectedFile && !name.endsWith('/.gitkeep')).length > 0
+                    ? `\n\n=== Other Workspace Files ===\n` +
+                      Object.entries(files)
+                        .filter(([name]) => name !== selectedFile && !name.endsWith('/.gitkeep'))
+                        .map(([name, content]) => `--- ${name} ---\n${content}`)
+                        .join('\n\n')
+                    : ''
+                }`
+              : (files[selectedFile] ?? '')
+          }
           language={submission?.assessment?.allowedLanguage || 'javascript'}
           lastExecutionOutput={
             executionResult

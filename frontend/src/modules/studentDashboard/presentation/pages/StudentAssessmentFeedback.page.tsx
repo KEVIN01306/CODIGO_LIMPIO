@@ -26,11 +26,11 @@ import {
   CheckCircleOutlineOutlined,
   HourglassEmpty,
   ErrorOutlineOutlined,
-  ChatBubbleOutlineOutlined,
   ReportProblemOutlined,
   CodeOutlined,
   ArrowBack,
   PlayArrow,
+  AutoAwesomeOutlined,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import {
@@ -619,7 +619,7 @@ const StudentAssessmentFeedbackPage: React.FC = () => {
       {/* Grid: Teacher Feedback & Evaluation Findings */}
       {isEvaluated && (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
-          {/* Section: Teacher Comments */}
+          {/* Section: AI Feedback */}
           <Paper
             variant="outlined"
             sx={{
@@ -633,20 +633,20 @@ const StudentAssessmentFeedbackPage: React.FC = () => {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <ChatBubbleOutlineOutlined sx={{ color: '#60a5fa', fontSize: 20 }} />
+              <AutoAwesomeOutlined sx={{ color: '#a855f7', fontSize: 20 }} />
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Teacher Comments
+                AI Feedback
               </Typography>
             </Box>
             <Divider sx={{ mb: 2 }} />
 
-            {feedbackData.teacherComments ? (
+            {(feedbackData.aiFeedback || feedbackData.teacherComments) ? (
               <Box
                 sx={{
                   p: 2.5,
                   borderRadius: '8px',
                   bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#18191b' : '#f8fafc'),
-                  borderLeft: '3px solid #3b82f6',
+                  borderLeft: '3px solid #a855f7',
                 }}
               >
                 <Typography
@@ -655,16 +655,15 @@ const StudentAssessmentFeedbackPage: React.FC = () => {
                     whiteSpace: 'pre-wrap',
                     lineHeight: 1.7,
                     color: 'text.primary',
-                    fontStyle: 'italic',
                   }}
                 >
-                  "{feedbackData.teacherComments}"
+                  {feedbackData.aiFeedback || feedbackData.teacherComments}
                 </Typography>
               </Box>
             ) : (
               <Box sx={{ py: 4, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  No teacher comments have been provided for this submission.
+                  No evaluation feedback has been provided for this submission.
                 </Typography>
               </Box>
             )}

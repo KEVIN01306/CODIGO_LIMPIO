@@ -7,5 +7,9 @@ export declare class GeminiAiService {
      * Generates a streaming response from Gemini using @google/genai
      */
     generateStream(systemInstruction: string, chatHistory: ChatMessage[], studentPrompt: string): AsyncGenerator<string, void, unknown>;
+    /**
+     * Generates a non-streaming text response from Gemini
+     */
+    generateText(systemInstruction: string, prompt: string, jsonMode?: boolean): Promise<string>;
 }
 //# sourceMappingURL=gemini-ai.service.d.ts.map

@@ -65,8 +65,12 @@ export class SocraticChatUseCase {
         });
         // 7. Build Socratic prompt instruction
         const systemInstruction = MayeuticaPromptBuilder.buildSystemInstruction(finalWorkspaceContext);
+        // Provide code context directly inside the user turn so Gemini never misses it
+        const promptWithContext = finalWorkspaceContext.currentCode?.trim()
+            ? `[Código actual en mi editor]:\n\`\`\`${finalWorkspaceContext.language || 'text'}\n${finalWorkspaceContext.currentCode}\n\`\`\`\n\nPregunta:\n${studentPrompt}`
+            : studentPrompt;
         // 8. Stream from Gemini
-        const stream = this.geminiService.generateStream(systemInstruction, currentHistory, studentPrompt);
+        const stream = this.geminiService.generateStream(systemInstruction, currentHistory, promptWithContext);
         let assistantResponse = '';
         for await (const chunk of stream) {
             if (signal?.aborted) {

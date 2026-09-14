@@ -624,7 +624,9 @@ export const SubmissionDetailModal: React.FC<Props> = ({
                   <Alert severity="info" sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Comments / Feedback:</Typography>
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {typeof sub.feedback === 'string' ? sub.feedback : JSON.stringify(sub.feedback, null, 2)}
+                      {typeof sub.feedback === 'string'
+                        ? sub.feedback
+                        : ((sub.feedback as any)?.aiFeedback || (sub.feedback as any)?.feedback || (sub.feedback as any)?.comments || JSON.stringify(sub.feedback, null, 2))}
                     </Typography>
                   </Alert>
                 )}

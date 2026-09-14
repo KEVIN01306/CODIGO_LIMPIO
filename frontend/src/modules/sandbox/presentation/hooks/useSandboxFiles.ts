@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ export interface UseSandboxFilesReturn {
    * Called from Monaco's onChange — updates only the content of the
    * currently selected file without changing any other file.
    */
-  updateFileContent: (value: string) => void;
+  updateFileContent: (value: string, targetPath?: string) => void;
   /**
    * Selects a different file.
    */
@@ -54,23 +54,30 @@ export const useSandboxFiles = (): UseSandboxFilesReturn => {
   const [files, setFilesState] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFileState] = useState<string>('');
 
+  // Keep a ref to the currently selected file to avoid stale closures in onChange callbacks
+  const selectedFileRef = useRef(selectedFile);
+  selectedFileRef.current = selectedFile;
+
   const setFiles = useCallback((incoming: Record<string, string>) => {
     setFilesState(incoming);
   }, []);
 
   const setSelectedFile = useCallback((filename: string) => {
+    selectedFileRef.current = filename;
     setSelectedFileState(filename);
   }, []);
 
-  const updateFileContent = useCallback((value: string) => {
+  const updateFileContent = useCallback((value: string, targetPath?: string) => {
+    const fileToUpdate = targetPath ?? selectedFileRef.current;
     setFilesState((prev) => {
-      if (!selectedFile) return prev;
-      if (prev[selectedFile] === value) return prev;
-      return { ...prev, [selectedFile]: value };
+      if (!fileToUpdate) return prev;
+      if (prev[fileToUpdate] === value) return prev;
+      return { ...prev, [fileToUpdate]: value };
     });
-  }, [selectedFile]);
+  }, []);
 
   const selectFile = useCallback((filename: string) => {
+    selectedFileRef.current = filename;
     setSelectedFileState(filename);
   }, []);
 

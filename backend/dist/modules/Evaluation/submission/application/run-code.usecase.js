@@ -74,7 +74,7 @@ export class RunCodeUseCase {
             throw new AppError('Cannot execute code for a submission that is not in progress', 'BAD_REQUEST', 400);
         }
         // Validate that the entry file actually exists in the snapshot.
-        if (!codeSnapshot[entryFile]) {
+        if (codeSnapshot[entryFile] === undefined) {
             throw new AppError(`Entry file "${entryFile}" not found in the code snapshot`, 'BAD_REQUEST', 400);
         }
         // ── Execution ─────────────────────────────────────────────────────────

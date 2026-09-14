@@ -60,8 +60,10 @@ export class SubmissionController extends BaseController {
     finish = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = req.params.id as string;
-            const entity = await this.finishUseCase.execute(id);
-            return res.status(200).json(ResponseHttp.success('Submission finished successfully', entity));
+            const user = (req as any).user;
+            const { entryFile, codeSnapshot } = req.body || {};
+            const entity = await this.finishUseCase.execute(id, user.id, { entryFile, codeSnapshot });
+            return res.status(200).json(ResponseHttp.success('Submission finished and evaluated successfully', entity));
         } catch (error) { next(error); }
     }
 

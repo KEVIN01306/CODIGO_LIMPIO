@@ -15,8 +15,11 @@ export const syncSubmission = async (
   return response.data.data;
 };
 
-export const finishSubmission = async (id: string): Promise<any> => {
-  const response = await api.post(`${API_URL}/${id}/finish`);
+export const finishSubmission = async (
+  id: string,
+  data?: { entryFile?: string; codeSnapshot?: Record<string, string> }
+): Promise<any> => {
+  const response = await api.post(`${API_URL}/${id}/finish`, data || {});
   return response.data.data;
 };
 
@@ -157,6 +160,7 @@ export interface StudentSubmissionFeedback {
   submittedAt: string | null;
   submittedCode: Record<string, string> | null;
   score: number | null;
+  aiFeedback: string | null;
   teacherComments: string | null;
   evaluationFindings: StudentEvaluationFinding[];
   testsPassedScore: number | null;

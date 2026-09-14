@@ -64,4 +64,38 @@ export class GeminiAiService {
       );
     }
   }
+
+  /**
+   * Generates a non-streaming text response from Gemini
+   */
+  async generateText(
+    systemInstruction: string,
+    prompt: string,
+    jsonMode = false
+  ): Promise<string> {
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.modelName,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+        config: {
+          systemInstruction,
+          responseMimeType: jsonMode ? 'application/json' : undefined,
+        },
+      });
+
+      return response.text || '';
+    } catch (error: any) {
+      console.error('[GeminiAiService] Error generating text:', error);
+      throw new AppError(
+        'Failed to generate AI response. Please try again.',
+        'AI_GENERATION_FAILED',
+        502
+      );
+    }
+  }
 }

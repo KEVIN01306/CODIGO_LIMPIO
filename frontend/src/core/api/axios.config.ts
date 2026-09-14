@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/auth.store';
 import { handleApiError } from './api-error-handler';
 import type { AuthUser } from '../../modules/auth/domain/auth.interfaces';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const baseURL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:8000';
 
 /**
  * Public Axios client: used for login, refresh, logout, and other unauthenticated endpoints.

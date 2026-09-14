@@ -17,6 +17,7 @@ export interface StudentSubmissionFeedbackDTO {
     submittedAt: Date | null;
     submittedCode: Record<string, string> | null;
     score: number | null;
+    aiFeedback: string | null;
     teacherComments: string | null;
     evaluationFindings: StudentEvaluationFinding[];
     testsPassedScore: number | null;
@@ -34,6 +35,7 @@ export declare class GetStudentSubmissionFeedbackUseCase {
      * Helper to extract teacher comments from aiFeedback or gradeRecord.
      */
     private extractTeacherComments;
+    private extractAiFeedback;
     private formatResponse;
     /**
      * Retrieve feedback by submission ID, strictly verifying student ownership.

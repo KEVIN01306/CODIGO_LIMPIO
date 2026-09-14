@@ -50,5 +50,30 @@ export class GeminiAiService {
             throw new AppError('Failed to generate AI tutor response. Please try again.', 'AI_GENERATION_FAILED', 502);
         }
     }
+    /**
+     * Generates a non-streaming text response from Gemini
+     */
+    async generateText(systemInstruction, prompt, jsonMode = false) {
+        try {
+            const response = await this.ai.models.generateContent({
+                model: this.modelName,
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [{ text: prompt }],
+                    },
+                ],
+                config: {
+                    systemInstruction,
+                    responseMimeType: jsonMode ? 'application/json' : undefined,
+                },
+            });
+            return response.text || '';
+        }
+        catch (error) {
+            console.error('[GeminiAiService] Error generating text:', error);
+            throw new AppError('Failed to generate AI response. Please try again.', 'AI_GENERATION_FAILED', 502);
+        }
+    }
 }
 //# sourceMappingURL=gemini-ai.service.js.map

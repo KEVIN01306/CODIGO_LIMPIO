@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Button, Typography, CircularProgress, Chip } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Chip, IconButton, Tooltip } from '@mui/material';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -32,6 +33,8 @@ interface Props {
   onRunCode: () => void;
   /** Called when the user clicks Submit Assessment. */
   onSubmit: () => void;
+  /** Called when the user clicks Exit / Back to leave the assessment. */
+  onExit?: () => void;
 }
 
 /**
@@ -59,6 +62,7 @@ const SandboxToolbar: React.FC<Props> = ({
   onToggleFileTree,
   onRunCode,
   onSubmit,
+  onExit,
 }) => {
   return (
     <Box
@@ -76,14 +80,39 @@ const SandboxToolbar: React.FC<Props> = ({
         minHeight: 48,
       }}
     >
-      {/* Left: title */}
-      <Typography
-        variant="subtitle2"
-        sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'text.primary' }}
-        noWrap
-      >
-        {title}
-      </Typography>
+      {/* Left: exit button + title */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
+        {onExit && (
+          <Tooltip title="Exit Assessment" arrow>
+            <IconButton
+              size="small"
+              onClick={onExit}
+              aria-label="Exit assessment"
+              sx={{
+                color: 'text.secondary',
+                p: 0.5,
+                borderRadius: '8px',
+                border: '1px solid',
+                borderColor: 'divider',
+                '&:hover': {
+                  color: 'text.primary',
+                  bgcolor: 'action.hover',
+                  borderColor: 'text.secondary',
+                },
+              }}
+            >
+              <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Typography
+          variant="subtitle2"
+          sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'text.primary' }}
+          noWrap
+        >
+          {title}
+        </Typography>
+      </Box>
 
       {/* Right: status + actions */}
       <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexShrink: 0 }}>

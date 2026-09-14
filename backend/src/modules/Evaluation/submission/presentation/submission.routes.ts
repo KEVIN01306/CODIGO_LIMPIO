@@ -11,6 +11,8 @@ import { ListAssessmentSubmissionsUseCase } from '../application/list-assessment
 import { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
 import { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
+import { GeminiAiService } from '../../../AI/infrastructure/gemini-ai.service.js';
+import { GradeAssessmentUseCase } from '../../../AI/application/grade-assessment.usecase.js';
 import { SubmissionController } from './submission.controller.js';
 import { startSubmissionSchema, syncSubmissionSchema, updateCodeSnapshotSchema, runCodeSchema } from '../domain/submission.schemas.js';
 import { AuthMiddleware } from '../../../../app/middleware/Auth.middleware.js';
@@ -20,12 +22,14 @@ export const submissionRoutes = Router();
 const prisma = new PrismaClient();
 
 const repository = new PrismaSubmissionRepository(prisma);
+const geminiAiService = new GeminiAiService();
+const gradeAssessmentUseCase = new GradeAssessmentUseCase(geminiAiService);
+const runCodeUseCase = new RunCodeUseCase(repository);
+const finishUseCase = new FinishSubmissionUseCase(repository, runCodeUseCase, gradeAssessmentUseCase, prisma);
 const startUseCase = new StartSubmissionUseCase(repository);
 const syncUseCase = new SyncSubmissionUseCase(repository);
-const finishUseCase = new FinishSubmissionUseCase(repository);
 const getUseCase = new GetSubmissionUseCase(repository);
 const updateCodeSnapshotUseCase = new UpdateCodeSnapshotUseCase(repository);
-const runCodeUseCase = new RunCodeUseCase(repository);
 const listAssessmentSubmissionsUseCase = new ListAssessmentSubmissionsUseCase(repository, prisma);
 const gradeSubmissionUseCase = new GradeSubmissionUseCase(repository);
 const getStudentSubmissionFeedbackUseCase = new GetStudentSubmissionFeedbackUseCase(repository);

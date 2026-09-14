@@ -80,6 +80,7 @@ export const useAIChat = ({
         lastExecutionOutput: lastExecutionOutput || null,
         exerciseGoal: exerciseGoal || '',
       };
+      console.log(workspaceContext);
 
       let accumulatedAssistantText = '';
 

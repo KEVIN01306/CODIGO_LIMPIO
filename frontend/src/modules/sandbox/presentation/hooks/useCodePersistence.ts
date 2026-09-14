@@ -18,6 +18,8 @@ export interface PersistedSnapshot {
 export interface UseCodePersistenceParams {
   /** The active submission ID — used to namespace the localStorage key. */
   submissionId: string;
+  /** Optional user ID for student user isolation across multi-user browsers. */
+  userId?: string;
   /** Current file map from React state. The hook watches this for changes. */
   files: Record<string, string>;
   /**
@@ -37,18 +39,123 @@ export interface UseCodePersistenceReturn {
    */
   flushAndSync: () => Promise<void>;
   /**
-   * Removes the localStorage entry for this submission.
-   * Call ONLY after the submission has been successfully finalized.
+   * Removes all temporary localStorage entries belonging to this submission sequentially.
+   * Call ONLY after the submission has been successfully finalized or when leaving the assessment.
    */
   clearLocalSnapshot: () => void;
+  /** Alias for clearLocalSnapshot following standard terminology. */
+  clearLocalFiles: () => void;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants & Key Helpers ──────────────────────────────────────────────────
 
 const DEBOUNCE_DELAY_MS = 3000;
 
-const storageKey = (submissionId: string) =>
-  `submission-code-snapshot:${submissionId}`;
+export const getStorageKeyPrefix = (submissionId: string, userId?: string): string => {
+  return userId ? `${userId}:${submissionId}` : submissionId;
+};
+
+export const getSnapshotKey = (submissionId: string, userId?: string): string => {
+  return `submission-code-snapshot:${getStorageKeyPrefix(submissionId, userId)}`;
+};
+
+export const getFileKey = (submissionId: string, filePath: string, userId?: string): string => {
+  return `sandbox-file:${getStorageKeyPrefix(submissionId, userId)}:${filePath}`;
+};
+
+export const getSessionMarkerKey = (submissionId: string): string => {
+  return `sandbox-session-active:${submissionId}`;
+};
+
+// ─── Session Marker Helpers ───────────────────────────────────────────────────
+
+/**
+ * Checks whether this tab has an active in-flight session for this submission.
+ * sessionStorage survives browser refresh (F5), but is absent for new tabs / re-entries.
+ */
+export const isAssessmentSessionActive = (submissionId: string): boolean => {
+  if (!submissionId) return false;
+  try {
+    return sessionStorage.getItem(getSessionMarkerKey(submissionId)) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+export const setAssessmentSessionActive = (submissionId: string): void => {
+  if (!submissionId) return;
+  try {
+    sessionStorage.setItem(getSessionMarkerKey(submissionId), 'true');
+  } catch {
+    // Ignore storage quota / private browsing errors
+  }
+};
+
+export const clearAssessmentSessionActive = (submissionId: string): void => {
+  if (!submissionId) return;
+  try {
+    sessionStorage.removeItem(getSessionMarkerKey(submissionId));
+  } catch {
+    // Ignore errors
+  }
+};
+
+// ─── Centralized LocalStorage Cleanup ─────────────────────────────────────────
+
+/**
+ * Identifies and removes all localStorage keys belonging specifically to the given submission.
+ * Deletions are performed sequentially. Unrelated keys, other submissions, other assessments,
+ * auth state, and theme settings are never touched.
+ *
+ * @returns Array of keys that were removed.
+ */
+export const clearSubmissionLocalStorage = (submissionId: string, userId?: string): string[] => {
+  if (!submissionId) return [];
+
+  const keysToRemove: string[] = [];
+
+  try {
+    const totalKeys = localStorage.length;
+    for (let i = 0; i < totalKeys; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+
+      // Check if key belongs to this submission
+      const isSnapshotKey = key.startsWith('submission-code-snapshot:') && key.includes(submissionId);
+      const isFileKey =
+        (key.startsWith('sandbox-file:') || key.startsWith('submission-file:')) &&
+        key.includes(submissionId);
+      const isLegacyFilesKey = key.startsWith('sandbox-files:') && key.includes(submissionId);
+
+      if (isSnapshotKey || isFileKey || isLegacyFilesKey) {
+        // Multi-user safety: if userId is provided, ensure we don't clear another user's key
+        // Keys formatted as `${prefix}:${userId}:${submissionId}...`
+        if (userId) {
+          const parts = key.split(':');
+          // If the key explicitly has a userId field and it doesn't match our userId, skip it
+          if (parts.length >= 3 && parts[1] !== submissionId && parts[1] !== userId) {
+            continue;
+          }
+        }
+        keysToRemove.push(key);
+      }
+    }
+
+    // Also clean up any un-scoped legacy fallback key if it exists
+    if (localStorage.getItem('submission-code-snapshot:latest') !== null) {
+      keysToRemove.push('submission-code-snapshot:latest');
+    }
+
+    // Sequentially remove each key one-by-one
+    for (let i = 0; i < keysToRemove.length; i++) {
+      localStorage.removeItem(keysToRemove[i]);
+    }
+  } catch (e) {
+    console.warn('Failed to clear submission localStorage keys:', e);
+  }
+
+  return keysToRemove;
+};
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -57,25 +164,23 @@ const storageKey = (submissionId: string) =>
  *
  * Dual-layer persistence for student code files:
  *
- *   Layer 1 — localStorage  (synchronous, immediate, survives browser refresh)
- *   Layer 2 — Backend API   (debounced 1.5s, survives device switches)
+ *   Layer 1 — localStorage  (synchronous, immediate, scoped to submission + user)
+ *   Layer 2 — Backend API   (debounced 3.0s, survives device switches)
  *
  * Flow:
- *   files change → localStorage immediately → restart 1.5s debounce
- *   1.5s without change → PUT /submissions/:id/code with latest snapshot
+ *   files change → localStorage immediately (snapshot + sequential file entries)
+ *               → restart 3.0s debounce
+ *   3.0s without change → PUT /submissions/:id/code with latest snapshot
  *
- * Stale-closure prevention:
- *   A `latestFilesRef` is updated synchronously so that the debounced
- *   callback always sends the most recent files, even if the closure captured
- *   an earlier version.
- *
- * AbortController:
- *   Each debounced request uses its own AbortController. When a new debounce
- *   fires before the previous request completes, the previous request is
- *   aborted so an older snapshot can never overwrite a newer one.
+ * Lifecycle & Cleanup:
+ *   - On mount: checks localStorage for saved snapshot (if active session).
+ *   - On flushAndSync: cancels debounce and immediately sends latest snapshot to backend.
+ *   - On clearLocalSnapshot: cancels debounce, aborts in-flight requests, marks hook as
+ *     cleaned up, and removes all submission localStorage keys sequentially.
  */
 export const useCodePersistence = ({
   submissionId,
+  userId,
   files,
   onFilesRestored,
 }: UseCodePersistenceParams): UseCodePersistenceReturn => {
@@ -93,29 +198,71 @@ export const useCodePersistence = ({
   // Track whether this is the first render (to run the restore logic once).
   const hasRestoredRef = useRef(false);
 
+  // Guard flag: once cleaned up (submitted or left), prevent any subsequent writes.
+  const isCleanedUpRef = useRef(false);
+
+  // Track previously stored individual file keys so we can remove deleted files.
+  const trackedFileKeysRef = useRef<Set<string>>(new Set());
+
   // ── Mount: check localStorage for a saved snapshot ──────────────────────
   useEffect(() => {
-    if (hasRestoredRef.current) return;
+    if (hasRestoredRef.current || !submissionId) return;
     hasRestoredRef.current = true;
 
     try {
-      const raw = localStorage.getItem(storageKey(submissionId));
+      // Check user-scoped key first, then fallback to unscoped key
+      const scopedKey = getSnapshotKey(submissionId, userId);
+      const fallbackKey = getSnapshotKey(submissionId);
+      const raw = localStorage.getItem(scopedKey) || localStorage.getItem(fallbackKey);
       if (raw) {
         const parsed: PersistedSnapshot = JSON.parse(raw);
-        if (parsed?.files && typeof parsed.files === 'object') {
+        if (parsed?.files && typeof parsed.files === 'object' && Object.keys(parsed.files).length > 0) {
           onFilesRestored?.(parsed.files);
         }
       }
     } catch {
       // Silently ignore corrupt localStorage data — the backend snapshot
-      // (already loaded by the parent page) serves as the fallback.
+      // (already loaded by the parent page) serves as the authoritative fallback.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissionId, userId]);
+
+  // ── Internal: send latest snapshot to the backend ───────────────────────
+  const syncToBackend = useCallback(async () => {
+    if (!submissionId || isCleanedUpRef.current) return;
+
+    // Abort any previous in-flight request.
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    // Read latest files from the ref to ensure freshest data is sent.
+    const snapshot = latestFilesRef.current;
+
+    try {
+      await updateCodeSnapshot(submissionId, snapshot);
+
+      // Only update status if this request wasn't superseded or cleaned up.
+      if (!controller.signal.aborted && !isCleanedUpRef.current) {
+        setStatus('saved');
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || err?.code === 'ERR_CANCELED') {
+        // Request was intentionally cancelled — a newer one is on the way.
+        return;
+      }
+      if (!controller.signal.aborted && !isCleanedUpRef.current) {
+        setStatus('error');
+      }
+    }
   }, [submissionId]);
 
   // ── On every files change: persist to localStorage + restart debounce ───
   useEffect(() => {
-    if (!submissionId) return;
+    if (!submissionId || isCleanedUpRef.current) return;
 
     // CRITICAL: Do NOT write empty files object to localStorage,
     // which would destroy saved code before initial load or fetch completes!
@@ -130,8 +277,25 @@ export const useCodePersistence = ({
         files,
         updatedAt: new Date().toISOString(),
       };
-      localStorage.setItem(storageKey(submissionId), JSON.stringify(snapshot));
-      localStorage.setItem('submission-code-snapshot:latest', JSON.stringify(snapshot));
+
+      // Save submission-scoped snapshot
+      localStorage.setItem(getSnapshotKey(submissionId, userId), JSON.stringify(snapshot));
+
+      // Save each file individually under scoped key for sequential file operations
+      const currentKeys = new Set<string>();
+      for (const [filePath, content] of Object.entries(files)) {
+        const fileKey = getFileKey(submissionId, filePath, userId);
+        currentKeys.add(fileKey);
+        localStorage.setItem(fileKey, content);
+      }
+
+      // Remove any individual file keys that were deleted from the files map
+      for (const oldKey of trackedFileKeysRef.current) {
+        if (!currentKeys.has(oldKey)) {
+          localStorage.removeItem(oldKey);
+        }
+      }
+      trackedFileKeysRef.current = currentKeys;
     } catch (e) {
       console.warn('Failed to save code to localStorage:', e);
     }
@@ -147,49 +311,14 @@ export const useCodePersistence = ({
       syncToBackend();
     }, DEBOUNCE_DELAY_MS);
 
-    // Cleanup: cancel timer when submissionId changes or component unmounts.
+    // Cleanup: cancel timer when submissionId/files change or component unmounts.
     return () => {
       if (debounceTimerRef.current !== null) {
         clearTimeout(debounceTimerRef.current);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files, submissionId]);
-
-  // ── Internal: send latest snapshot to the backend ───────────────────────
-  const syncToBackend = useCallback(async () => {
-    if (!submissionId) return;
-
-    // Abort any previous in-flight request.
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    // Read the latest files from the ref — NOT from the closure — to ensure
-    // we never send a stale snapshot.
-    const snapshot = latestFilesRef.current;
-
-    try {
-      await updateCodeSnapshot(submissionId, snapshot);
-
-      // Only update status if this request wasn't superseded by a newer one.
-      if (!controller.signal.aborted) {
-        setStatus('saved');
-      }
-    } catch (err: any) {
-      if (err?.name === 'AbortError' || err?.code === 'ERR_CANCELED') {
-        // Request was intentionally cancelled — a newer one is on the way.
-        return;
-      }
-      if (!controller.signal.aborted) {
-        setStatus('error');
-        // localStorage still holds the latest data — no work is lost.
-      }
-    }
-  }, [submissionId]);
+  }, [files, submissionId, userId, syncToBackend]);
 
   // ── flushAndSync: cancel debounce and force an immediate sync ───────────
   const flushAndSync = useCallback(async (): Promise<void> => {
@@ -203,21 +332,28 @@ export const useCodePersistence = ({
     await syncToBackend();
   }, [syncToBackend]);
 
-  // ── clearLocalSnapshot: record submission flag without destroying code ───
+  // ── clearLocalSnapshot: delete submission localStorage sequentially ─────
   const clearLocalSnapshot = useCallback(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(submissionId));
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        localStorage.setItem(
-          storageKey(submissionId),
-          JSON.stringify({ ...parsed, submittedAt: new Date().toISOString() })
-        );
-      }
-    } catch {
-      // Ignore — not critical.
+    // Mark as cleaned up to stop any future writes
+    isCleanedUpRef.current = true;
+
+    // Cancel any pending debounce timer
+    if (debounceTimerRef.current !== null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
     }
-  }, [submissionId]);
+
+    // Abort in-flight request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Centralized sequential cleanup of all keys for this submission
+    clearSubmissionLocalStorage(submissionId, userId);
+    clearAssessmentSessionActive(submissionId);
+    trackedFileKeysRef.current.clear();
+  }, [submissionId, userId]);
 
   // ── Cleanup on unmount ───────────────────────────────────────────────────
   useEffect(() => {
@@ -231,5 +367,11 @@ export const useCodePersistence = ({
     };
   }, []);
 
-  return { status, flushAndSync, clearLocalSnapshot };
+  return {
+    status,
+    flushAndSync,
+    clearLocalSnapshot,
+    clearLocalFiles: clearLocalSnapshot,
+  };
 };
+
