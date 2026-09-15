@@ -8,6 +8,7 @@ import { assignmentRoutes } from '../../modules/assignment/presentation/assignme
 import { usersRoutes } from '../../modules/users/presentation/users.routes';
 import { studentDashboardRoutes } from '../../modules/studentDashboard/studentDashboard.routes';
 import { teacherDashboardRoutes } from '../../modules/teacherDashboard/teacherDashboard.routes';
+import { tenantRoutes } from '../../modules/tenant/tenant.routes';
 
 const BlankLayout = lazy(() => import('../layouts/blankLayout/BlankLayout'));
 const FullLayout = lazy(() => import('../layouts/fullLayout/FullLayout'));
@@ -53,6 +54,7 @@ export const appRouter = createBrowserRouter([
           ...academicRoutes,
           assignmentRoutes,
           usersRoutes,
+          ...tenantRoutes,
           {
             path: 'my-courses',
             children: studentDashboardRoutes,
@@ -68,6 +70,10 @@ export const appRouter = createBrowserRouter([
           },
           {
             path: 'access-denied',
+            element: <AccessDeniedPage />,
+          },
+          {
+            path: 'acceso-denegado',
             element: <AccessDeniedPage />,
           },
         ],

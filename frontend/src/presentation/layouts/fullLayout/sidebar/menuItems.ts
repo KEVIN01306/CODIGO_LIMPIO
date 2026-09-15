@@ -70,12 +70,6 @@ const MenuItems: MenuItem[] = [
     link: "/my-courses",
     requiresStudent: true
   },
-  {
-    name: "Grades",
-    icon: FactCheckOutlined,
-    link: "/grades",
-    requiresStudent: true
-  },
 
   { group: "Teacher Dashboard", requiresTeacher: true },
   {
@@ -90,7 +84,6 @@ const MenuItems: MenuItem[] = [
     link: "/assignments",
     requiresTeacher: true
   },
-
   { group: "System Administration" },
   {
     module: "Settings",
@@ -99,7 +92,6 @@ const MenuItems: MenuItem[] = [
     children: [
       { name: "Tenant", link: "/admin/tenant", icon: BusinessOutlined, permissions: ["tenant:read"] },
       { name: "Roles & Permissions", link: "/admin/roles", icon: AdminPanelSettingsOutlined, permissions: ["roles:read"] },
-      { name: "Users", link: "/admin/users", icon: GroupOutlined, permissions: ["users:read"] },
     ]
   },
 ];

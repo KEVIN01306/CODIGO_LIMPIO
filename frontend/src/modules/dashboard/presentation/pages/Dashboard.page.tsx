@@ -68,7 +68,7 @@ const CourseCard = ({ course, isTeacher }: { course: CourseSummary; isTeacher?: 
           {course.name}
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: '12px' }}>
-          Ciclo: {course.cycle}
+          Cycle: {course.cycle}
         </Typography>
       </Box>
 
@@ -200,7 +200,7 @@ const DashboardPage = () => {
             {greeting} {data.user.firstName}!
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '13px', letterSpacing: '-0.2px' }}>
-            Institución educativa: <strong style={{ color: 'inherit' }}>{data.tenant.name}</strong>
+            Educational institution: <strong style={{ color: 'inherit' }}>{data.tenant.name}</strong>
           </Typography>
         </Box>
 
@@ -347,10 +347,10 @@ const DashboardPage = () => {
       {!isStudent && !isTeacher && (
         <Box sx={{ mb: 5 }}>
           <Typography variant="h5" sx={{ fontWeight: 400, fontSize: '20px', letterSpacing: '-0.5px', color: 'text.primary', mb: 0.5 }}>
-            Gestión de la Plataforma
+            Management of the Platform
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '13px', mb: 3 }}>
-            Accede rápidamente a los módulos principales de administración académica.
+            Access the main academic administration modules quickly.
           </Typography>
 
           <Grid container spacing={2.5}>
@@ -373,10 +373,10 @@ const DashboardPage = () => {
                   <PeopleAltOutlined sx={{ fontSize: 20 }} />
                 </Avatar>
                 <Typography variant="h6" sx={{ fontWeight: 450, fontSize: '15px', letterSpacing: '-0.2px', color: 'text.primary', mb: 0.5 }}>
-                  Estudiantes
+                  Students
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '12px' }}>
-                  Administrar matrículas, perfiles y carnés de alumnos.
+                  Manage enrollments, profiles, and student IDs.
                 </Typography>
               </Card>
             </Grid>
@@ -400,10 +400,10 @@ const DashboardPage = () => {
                   <BadgeOutlined sx={{ fontSize: 20 }} />
                 </Avatar>
                 <Typography variant="h6" sx={{ fontWeight: 450, fontSize: '15px', letterSpacing: '-0.2px', color: 'text.primary', mb: 0.5 }}>
-                  Docentes
+                  Teachers
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '12px' }}>
-                  Gestionar perfiles del profesorado y asignaciones.
+                  Manage teacher profiles and assignments.
                 </Typography>
               </Card>
             </Grid>
@@ -427,10 +427,10 @@ const DashboardPage = () => {
                   <MenuBookOutlined sx={{ fontSize: 20 }} />
                 </Avatar>
                 <Typography variant="h6" sx={{ fontWeight: 450, fontSize: '15px', letterSpacing: '-0.2px', color: 'text.primary', mb: 0.5 }}>
-                  Cursos y Catálogo
+                  Courses and Catalog
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '12px' }}>
-                  Gestionar carreras, ciclos y materias del pensum.
+                  Manage careers, cycles, and syllabus subjects.
                 </Typography>
               </Card>
             </Grid>
@@ -454,10 +454,10 @@ const DashboardPage = () => {
                   <AssignmentOutlined sx={{ fontSize: 20 }} />
                 </Avatar>
                 <Typography variant="h6" sx={{ fontWeight: 450, fontSize: '15px', letterSpacing: '-0.2px', color: 'text.primary', mb: 0.5 }}>
-                  Secciones y Asignaciones
+                  Sections and Assignments
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '12px' }}>
-                  Aperturar cursos, asignar docentes y registrar inscripciones.
+                  Open courses, assign teachers, and register enrollments.
                 </Typography>
               </Card>
             </Grid>

@@ -10,6 +10,7 @@ import AcademicRoutes from "../modules/Academic/academic.routes.js";
 import AssignmentRoutes from "../modules/Assignment/assignment.routes.js";
 import { evaluationRoutes } from "../modules/Evaluation/evaluation.routes.js";
 import { aiRoutes } from "../modules/AI/presentation/ai.routes.js";
+import TenantRoutes from "../modules/Tenant/presentation/tenant.routes.js";
 const router = Router();
 router.use('/auth', AuthRoutes);
 router.use('/users/teachers', TeachersRoutes);
@@ -21,6 +22,7 @@ router.use('/academic', AcademicRoutes);
 router.use('/assignments', AssignmentRoutes);
 router.use('/evaluations', evaluationRoutes);
 router.use('/ai', aiRoutes);
+router.use('/tenant', TenantRoutes);
 router.use(ErrorMiddleware);
 export default router;
 //# sourceMappingURL=index.routes.js.map

@@ -110,6 +110,11 @@ async function main() {
         { action: 'assessments:create', description: 'Create assessments' },
         { action: 'assessments:update', description: 'Update assessments' },
         { action: 'assessments:delete', description: 'Delete assessments' },
+        // Tenant Configuration
+        { action: 'tenant:read', description: 'Read tenant configuration' },
+        { action: 'tenant:update', description: 'Update tenant configuration' },
+        // Roles & Permissions Matrix
+        { action: 'roles:read', description: 'Read roles and permissions matrix' },
     ];
 
     for (const perm of permissionsList) {
@@ -166,8 +171,8 @@ async function main() {
     for (const perm of permissionsList) {
         const dbPerm = await prisma.permission.findUnique({ where: { action: perm.action } });
         if (dbPerm) {
-            // Teacher gets all assessments and academic read permissions
-            if (perm.action.startsWith('assessments:') || perm.action.endsWith(':read')) {
+            // Teacher gets all assessments and academic read permissions (excluding tenant config and roles)
+            if ((perm.action.startsWith('assessments:') || perm.action.endsWith(':read')) && !perm.action.startsWith('tenant:') && !perm.action.startsWith('roles:')) {
                 await prisma.rolePermission.upsert({
                     where: { roleId_permissionId: { roleId: teacherRole.id, permissionId: dbPerm.id } },
                     update: {}, create: { roleId: teacherRole.id, permissionId: dbPerm.id }
