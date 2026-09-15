@@ -11,6 +11,7 @@ import { ListAssessmentSubmissionsUseCase } from '../application/list-assessment
 import { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
 import { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
+import { GetStudentCourseGradesUseCase } from '../application/get-student-course-grades.usecase.js';
 import { GeminiAiService } from '../../../AI/infrastructure/gemini-ai.service.js';
 import { GradeAssessmentUseCase } from '../../../AI/application/grade-assessment.usecase.js';
 import { SubmissionController } from './submission.controller.js';
@@ -34,6 +35,7 @@ const listAssessmentSubmissionsUseCase = new ListAssessmentSubmissionsUseCase(re
 const gradeSubmissionUseCase = new GradeSubmissionUseCase(repository);
 const getStudentSubmissionFeedbackUseCase = new GetStudentSubmissionFeedbackUseCase(repository);
 const listStudentSubmissionsUseCase = new ListStudentSubmissionsUseCase(repository);
+const getStudentCourseGradesUseCase = new GetStudentCourseGradesUseCase(repository);
 
 const controller = new SubmissionController(
     startUseCase,
@@ -45,7 +47,8 @@ const controller = new SubmissionController(
     listAssessmentSubmissionsUseCase,
     gradeSubmissionUseCase,
     getStudentSubmissionFeedbackUseCase,
-    listStudentSubmissionsUseCase
+    listStudentSubmissionsUseCase,
+    getStudentCourseGradesUseCase
 );
 
 const authMiddleware = new AuthMiddleware();
@@ -79,6 +82,13 @@ submissionRoutes.get(
     '/my-submissions',
     authMiddleware.checkPermission(['assessments:read']),
     controller.getMySubmissions
+);
+
+// Get calling student's course grades for an offering (before /:id)
+submissionRoutes.get(
+    '/course/:offeringId/grades',
+    authMiddleware.checkPermission(['assessments:read']),
+    controller.getMyCourseGrades
 );
 
 // Get sanitized feedback for student's submission on an assessment (before /:id)

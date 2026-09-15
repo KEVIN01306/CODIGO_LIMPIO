@@ -1,5 +1,6 @@
 export interface CourseSummary {
     id: string;
+    offeringId?: string;
     code: string;
     name: string;
     credits: number;

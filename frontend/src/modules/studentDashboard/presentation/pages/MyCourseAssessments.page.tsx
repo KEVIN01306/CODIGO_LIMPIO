@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Breadcrumbs, Link as MuiLink, CircularProgress, Chip } from '@mui/material';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { PlayArrow, NavigateNext, Assignment, Visibility, RateReview } from '@mui/icons-material';
+import { Box, Typography, CircularProgress, Chip } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { PlayArrow, Assignment, Visibility, RateReview } from '@mui/icons-material';
 import ListTable from '../../../../shared/components/tables/ListTable';
 import { getAssessments } from '../../../evaluation/assessment/infrastructure/assessment.service';
 import type { Assessment as AssessmentType } from '../../../evaluation/assessment/domain/assessment.interfaces';
@@ -11,12 +11,15 @@ import {
   getMySubmissions,
   type MySubmissionItem,
 } from '../../../sandbox/infrastructure/submission.service';
+import { getCourseOfferingById } from '../../../assignment/courseOffering/infrastructure/courseOffering.service';
+import { CourseHeaderTabs } from '../components/CourseHeaderTabs.component';
 
 const MyCourseAssessments = () => {
   const { offeringId } = useParams<{ offeringId: string }>();
   const navigate = useNavigate();
 
   const [data, setData] = useState<AssessmentType[]>([]);
+  const [courseOffering, setCourseOffering] = useState<any>(null);
   const [submissionsMap, setSubmissionsMap] = useState<Record<string, MySubmissionItem>>({});
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -32,13 +35,15 @@ const MyCourseAssessments = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [assessmentsRes, mySubs] = await Promise.all([
+      const [assessmentsRes, mySubs, offeringRes] = await Promise.all([
         getAssessments({ offeringId, page, perPage }),
         getMySubmissions({ offeringId }).catch(() => [] as MySubmissionItem[]),
+        offeringId ? getCourseOfferingById(offeringId).catch(() => null) : null,
       ]);
 
       setData(assessmentsRes.data);
       setTotal(assessmentsRes.meta?.total || 0);
+      if (offeringRes) setCourseOffering(offeringRes);
 
       const subMap: Record<string, MySubmissionItem> = {};
       if (Array.isArray(mySubs)) {
@@ -208,34 +213,13 @@ const MyCourseAssessments = () => {
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
-      <Breadcrumbs
-        separator={<NavigateNext fontSize="small" sx={{ color: 'text.secondary' }} />}
-        sx={{ mb: 2.5, fontSize: '0.875rem' }}
-      >
-        <MuiLink
-          component={Link}
-          to="/my-courses"
-          sx={{
-            color: 'text.secondary',
-            textDecoration: 'none',
-            '&:hover': { color: '#60a5fa', textDecoration: 'underline' },
-          }}
-        >
-          My Courses
-        </MuiLink>
-        <Typography sx={{ color: 'text.primary', fontWeight: 500, fontSize: '0.875rem' }}>
-          Assessments
-        </Typography>
-      </Breadcrumbs>
-
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 400, letterSpacing: '-0.02em' }}>
-          Course Assessments
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-          Review scheduled evaluation activities, complete coding exercises, and examine detailed teacher feedback.
-        </Typography>
-      </Box>
+      <CourseHeaderTabs
+        courseName={courseOffering?.course?.name || (data[0] as any)?.offering?.course?.name || 'Course'}
+        courseCode={courseOffering?.course?.code || (data[0] as any)?.offering?.course?.code}
+        activeTab="assessments"
+        title="Course Assessments"
+        subtitle="Review scheduled evaluation activities, complete coding exercises, and examine detailed teacher feedback."
+      />
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>

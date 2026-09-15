@@ -1,1 +1,1 @@
-{"version":3,"file":"get-dashboard-summary.usecase.d.ts","sourceRoot":"","sources":["../../../../src/modules/Dashboard/application/get-dashboard-summary.usecase.ts"],"names":[],"mappings":"AAGA,qBAAa,0BAA0B;IAC7B,OAAO,CAAC,MAAM,EAAE,MAAM;;;;;;;;;;;;;;;;;;;;;;;;;;;;CAqE/B"}
+{"version":3,"file":"get-dashboard-summary.usecase.d.ts","sourceRoot":"","sources":["../../../../src/modules/Dashboard/application/get-dashboard-summary.usecase.ts"],"names":[],"mappings":"AAGA,qBAAa,0BAA0B;IAC7B,OAAO,CAAC,MAAM,EAAE,MAAM;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CAuE/B"}

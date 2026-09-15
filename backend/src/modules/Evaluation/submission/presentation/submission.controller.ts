@@ -11,6 +11,7 @@ import type { ListAssessmentSubmissionsUseCase } from '../application/list-asses
 import type { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
 import type { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import type { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
+import type { GetStudentCourseGradesUseCase } from '../application/get-student-course-grades.usecase.js';
 import AppError from '@shared/errors/AppError.js';
 import { PrismaClient } from '@prisma/client';
 import { submissionEventBus } from '../infrastructure/submission-events.bus.js';
@@ -28,7 +29,8 @@ export class SubmissionController extends BaseController {
         private readonly listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase,
         private readonly gradeSubmissionUseCase: GradeSubmissionUseCase,
         private readonly getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase,
-        private readonly listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase
+        private readonly listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase,
+        private readonly getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase
     ) { super(); }
 
     start = async (req: Request, res: Response, next: NextFunction) => {
@@ -160,6 +162,19 @@ export class SubmissionController extends BaseController {
             const offeringId = req.query.offeringId as string | undefined;
             const data = await this.listStudentSubmissionsUseCase.execute(user.id, offeringId);
             return res.status(200).json(ResponseHttp.success('Student submissions fetched successfully', data));
+        } catch (error) { next(error); }
+    }
+
+    /**
+     * GET /course/:offeringId/grades
+     * Returns authoritative grades across all assessments for the authenticated student in the course offering.
+     */
+    getMyCourseGrades = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const user = (req as any).user;
+            const offeringId = req.params.offeringId as string;
+            const data = await this.getStudentCourseGradesUseCase.execute(user.id, offeringId);
+            return res.status(200).json(ResponseHttp.success('Course grades fetched successfully', data));
         } catch (error) { next(error); }
     }
 

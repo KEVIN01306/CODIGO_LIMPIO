@@ -57,6 +57,10 @@ export const appRouter = createBrowserRouter([
             path: 'my-courses',
             children: studentDashboardRoutes,
           },
+          {
+            path: 'grades',
+            element: <Navigate to="/my-courses" replace />,
+          },
           ...teacherDashboardRoutes,
           {
             path: 'perfil',

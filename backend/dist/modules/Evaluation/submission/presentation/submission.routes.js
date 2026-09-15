@@ -11,6 +11,7 @@ import { ListAssessmentSubmissionsUseCase } from '../application/list-assessment
 import { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
 import { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
+import { GetStudentCourseGradesUseCase } from '../application/get-student-course-grades.usecase.js';
 import { GeminiAiService } from '../../../AI/infrastructure/gemini-ai.service.js';
 import { GradeAssessmentUseCase } from '../../../AI/application/grade-assessment.usecase.js';
 import { SubmissionController } from './submission.controller.js';
@@ -32,7 +33,8 @@ const listAssessmentSubmissionsUseCase = new ListAssessmentSubmissionsUseCase(re
 const gradeSubmissionUseCase = new GradeSubmissionUseCase(repository);
 const getStudentSubmissionFeedbackUseCase = new GetStudentSubmissionFeedbackUseCase(repository);
 const listStudentSubmissionsUseCase = new ListStudentSubmissionsUseCase(repository);
-const controller = new SubmissionController(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase);
+const getStudentCourseGradesUseCase = new GetStudentCourseGradesUseCase(repository);
+const controller = new SubmissionController(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase, getStudentCourseGradesUseCase);
 const authMiddleware = new AuthMiddleware();
 const validatedMiddleware = new ValidatedMiddleware();
 // Middleware de autenticación global para este módulo
@@ -43,6 +45,8 @@ submissionRoutes.patch('/:id/sync', authMiddleware.checkPermission(['assessments
 submissionRoutes.post('/:id/finish', authMiddleware.checkPermission(['assessments:read']), controller.finish);
 // Get calling student's submissions for an offering (before /:id)
 submissionRoutes.get('/my-submissions', authMiddleware.checkPermission(['assessments:read']), controller.getMySubmissions);
+// Get calling student's course grades for an offering (before /:id)
+submissionRoutes.get('/course/:offeringId/grades', authMiddleware.checkPermission(['assessments:read']), controller.getMyCourseGrades);
 // Get sanitized feedback for student's submission on an assessment (before /:id)
 submissionRoutes.get('/assessment/:assessmentId/feedback', authMiddleware.checkPermission(['assessments:read']), controller.getFeedbackByAssessment);
 // Get all student submissions for an assessment (teacher view, before /:id)

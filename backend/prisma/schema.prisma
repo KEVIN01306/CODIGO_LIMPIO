@@ -12,12 +12,13 @@ generator client {
 // ------------------------------------------------------
 
 model Tenant {
-  id        String   @id @default(uuid())
-  slug      String   @unique // e.g. "url-subdomain-universidad"
-  name      String
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                  String   @id @default(uuid())
+  slug                String   @unique // e.g. "url-subdomain-universidad"
+  name                String
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  defaultSebConfigKey String?  @map("default_seb_config_key")
 
   campuses           Campus[]
   programs           AcademicProgram[]
@@ -266,6 +267,9 @@ model Assessment {
   dueDate             DateTime?      @map("due_date")
   createdAt           DateTime       @default(now()) @map("created_at")
   updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  requireSeb   Boolean @default(false) @map("require_seb")
+  sebConfigKey String? @map("seb_config_key")
 
   // Configuración de entorno de examen
   timeLimitMinutes Int?    @map("time_limit_minutes")

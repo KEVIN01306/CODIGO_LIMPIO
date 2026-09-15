@@ -10,6 +10,7 @@ import type { ListAssessmentSubmissionsUseCase } from '../application/list-asses
 import type { GradeSubmissionUseCase } from '../application/grade-submission.usecase.js';
 import type { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import type { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
+import type { GetStudentCourseGradesUseCase } from '../application/get-student-course-grades.usecase.js';
 export declare class SubmissionController extends BaseController {
     private readonly startUseCase;
     private readonly syncUseCase;
@@ -21,7 +22,8 @@ export declare class SubmissionController extends BaseController {
     private readonly gradeSubmissionUseCase;
     private readonly getStudentSubmissionFeedbackUseCase;
     private readonly listStudentSubmissionsUseCase;
-    constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase);
+    private readonly getStudentCourseGradesUseCase;
+    constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase, getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase);
     start: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     sync: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     finish: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
@@ -55,6 +57,11 @@ export declare class SubmissionController extends BaseController {
      * Returns all submissions belonging to the authenticated student, optionally filtered by offeringId.
      */
     getMySubmissions: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    /**
+     * GET /course/:offeringId/grades
+     * Returns authoritative grades across all assessments for the authenticated student in the course offering.
+     */
+    getMyCourseGrades: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     /**
      * GET /:id/feedback
      * Returns sanitized, student-authorized evaluation feedback for a submission.

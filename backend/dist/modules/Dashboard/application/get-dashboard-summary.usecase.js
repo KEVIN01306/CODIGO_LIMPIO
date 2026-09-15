@@ -39,6 +39,7 @@ export class GetDashboardSummaryUseCase {
             roles.push('ADMIN');
         const studentCourses = user.student?.enrollments.map(e => ({
             id: e.offering.course.id,
+            offeringId: e.offeringId,
             code: e.offering.course.code,
             name: e.offering.course.name,
             credits: e.offering.course.credits,
@@ -47,6 +48,7 @@ export class GetDashboardSummaryUseCase {
         })) || [];
         const teacherCourses = user.teacher?.courseOfferings.map(o => ({
             id: o.course.id,
+            offeringId: o.id,
             code: o.course.code,
             name: o.course.name,
             credits: o.course.credits,

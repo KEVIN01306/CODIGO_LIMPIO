@@ -116,7 +116,8 @@ const SandboxEditor: React.FC = () => {
         setClipboardAttempts(data.clipboardAttempts || 0);
 
         const lang = data.assessment?.allowedLanguage || 'javascript';
-        const parsedBackend = parseCodeSnapshot(data.codeSnapshot, lang);
+        const descriptionText = data.assessment?.description || '';
+        const parsedBackend = parseCodeSnapshot(data.codeSnapshot, lang, descriptionText);
         let effectiveFiles = parsedBackend;
 
         // Lifecycle differentiation:

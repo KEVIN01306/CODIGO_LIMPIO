@@ -12,6 +12,7 @@ export declare class GetDashboardSummaryUseCase {
         };
         studentCourses: {
             id: string;
+            offeringId: string;
             code: string;
             name: string;
             credits: number;
@@ -20,6 +21,7 @@ export declare class GetDashboardSummaryUseCase {
         }[];
         teacherCourses: {
             id: string;
+            offeringId: string;
             code: string;
             name: string;
             credits: number;

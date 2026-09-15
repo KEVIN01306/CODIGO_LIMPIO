@@ -17,10 +17,11 @@ const CourseCard = ({ course, isTeacher }: { course: CourseSummary; isTeacher?: 
   const navigate = useNavigate();
 
   const handleNavigate = () => {
+    const targetOfferingId = course.offeringId || course.id;
     if (isTeacher) {
-      navigate(`/assignment/offerings/${course.id}/assessments`);
+      navigate(`/assignment/offerings/${targetOfferingId}/assessments`);
     } else {
-      navigate(`/my-courses/${course.id}/assessments`);
+      navigate(`/my-courses/${targetOfferingId}/assessments`);
     }
   };
 

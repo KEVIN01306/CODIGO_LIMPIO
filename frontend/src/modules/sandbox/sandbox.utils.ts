@@ -66,6 +66,33 @@ export const getLanguage = (fileName: string): string => {
   }
 };
 
+/** Formats a text block as a comment for the specified programming language. */
+export const formatCommentForLanguage = (text: string, language = 'javascript'): string => {
+  if (!text || !text.trim()) return '';
+  const lang = language.toLowerCase();
+  const trimmed = text.trim();
+
+  if (lang === 'python' || lang === 'py') {
+    const lines = trimmed.split('\n');
+    return lines.map((line) => (line ? `# ${line}` : '#')).join('\n') + '\n\n';
+  }
+
+  if (lang === 'html') {
+    return `<!--\n${trimmed}\n-->\n\n`;
+  }
+
+  if (lang === 'css') {
+    return `/*\n${trimmed}\n*/\n\n`;
+  }
+
+  // Default C-style comments (JS, TS, Java, etc.)
+  const lines = trimmed.split('\n');
+  if (lines.length === 1) {
+    return `// ${trimmed}\n\n`;
+  }
+  return `/**\n${lines.map((l) => ` * ${l}`).join('\n')}\n */\n\n`;
+};
+
 // ─── parseCodeSnapshot ────────────────────────────────────────────────────────
 
 /**
@@ -80,16 +107,22 @@ export const getLanguage = (fileName: string): string => {
  * The normaliser unifies all three into `Record<string, string>` so the rest of
  * the sandbox always works with a consistent type.
  *
- * @param snapshot  Raw value from the API.
- * @param language  Assessment's `allowedLanguage` used to derive the default
- *                  file extension when no files are present.
+ * @param snapshot    Raw value from the API.
+ * @param language    Assessment's `allowedLanguage` used to derive the default
+ *                    file extension when no files are present.
+ * @param description Optional assessment description to include as a leading comment.
  */
 export const parseCodeSnapshot = (
   snapshot: unknown,
-  language = 'javascript'
+  language = 'javascript',
+  description?: string | null
 ): Record<string, string> => {
   const defaultExt = languageToExtension(language);
-  const defaultFiles = () => ({ [`main.${defaultExt}`]: `// Write your code here\n` });
+  const comment = description ? formatCommentForLanguage(description, language) : '';
+  const defaultPlaceholder = language === 'python' ? '# Write your code here\n' : '// Write your code here\n';
+  const defaultFiles = () => ({
+    [`main.${defaultExt}`]: `${comment}${defaultPlaceholder}`,
+  });
 
   if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
     return defaultFiles();
@@ -99,14 +132,31 @@ export const parseCodeSnapshot = (
 
   // Legacy single-file format: { code: "..." }
   if ('code' in record && typeof record.code === 'string') {
-    return { [`main.${defaultExt}`]: record.code };
+    let code = record.code;
+    if ((!code.trim() || code.trim() === '// Write your code here' || code.trim() === '# Write your code here') && comment) {
+      code = `${comment}${defaultPlaceholder}`;
+    }
+    return { [`main.${defaultExt}`]: code };
   }
 
   // Multi-file format: filter out any non-string values
   const entries = Object.entries(record).filter(([, v]) => typeof v === 'string');
   if (entries.length === 0) return defaultFiles();
 
-  return Object.fromEntries(entries) as Record<string, string>;
+  const fileMap = Object.fromEntries(entries) as Record<string, string>;
+  const firstKey = Object.keys(fileMap)[0];
+  if (firstKey && comment) {
+    const content = fileMap[firstKey];
+    if (
+      content.trim() === '' ||
+      content.trim() === '// Write your code here' ||
+      content.trim() === '# Write your code here'
+    ) {
+      fileMap[firstKey] = `${comment}${defaultPlaceholder}`;
+    }
+  }
+
+  return fileMap;
 };
 
 /** Maps an assessment language name to a file extension for default file naming. */

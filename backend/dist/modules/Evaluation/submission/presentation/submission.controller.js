@@ -15,7 +15,8 @@ export class SubmissionController extends BaseController {
     gradeSubmissionUseCase;
     getStudentSubmissionFeedbackUseCase;
     listStudentSubmissionsUseCase;
-    constructor(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase) {
+    getStudentCourseGradesUseCase;
+    constructor(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase, getStudentCourseGradesUseCase) {
         super();
         this.startUseCase = startUseCase;
         this.syncUseCase = syncUseCase;
@@ -27,6 +28,7 @@ export class SubmissionController extends BaseController {
         this.gradeSubmissionUseCase = gradeSubmissionUseCase;
         this.getStudentSubmissionFeedbackUseCase = getStudentSubmissionFeedbackUseCase;
         this.listStudentSubmissionsUseCase = listStudentSubmissionsUseCase;
+        this.getStudentCourseGradesUseCase = getStudentCourseGradesUseCase;
     }
     start = async (req, res, next) => {
         try {
@@ -170,6 +172,21 @@ export class SubmissionController extends BaseController {
             const offeringId = req.query.offeringId;
             const data = await this.listStudentSubmissionsUseCase.execute(user.id, offeringId);
             return res.status(200).json(ResponseHttp.success('Student submissions fetched successfully', data));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    /**
+     * GET /course/:offeringId/grades
+     * Returns authoritative grades across all assessments for the authenticated student in the course offering.
+     */
+    getMyCourseGrades = async (req, res, next) => {
+        try {
+            const user = req.user;
+            const offeringId = req.params.offeringId;
+            const data = await this.getStudentCourseGradesUseCase.execute(user.id, offeringId);
+            return res.status(200).json(ResponseHttp.success('Course grades fetched successfully', data));
         }
         catch (error) {
             next(error);
