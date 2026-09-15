@@ -1,5 +1,4 @@
 import { Container, Box, Typography, Paper } from '@mui/material';
-import { Terminal } from '@mui/icons-material';
 import LoginForm from '../components/LoginForm.component';
 
 const LoginPage = () => {
@@ -42,14 +41,12 @@ const LoginPage = () => {
           >
             {/* Mission control technical chip logo */}
             <Box
+              component="img"
+              src="/logo.png"
               sx={{
-                width: 48,
-                height: 48,
+                width: 80,
+                height: 80,
                 borderRadius: '10px',
-                backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#1f1f21' : '#f1f5f9'),
-                border: '0.5px solid',
-                borderColor: 'divider',
-                boxShadow: '0 0 0 1.5px rgba(59, 130, 246, 0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -57,7 +54,6 @@ const LoginPage = () => {
                 mb: 2.5,
               }}
             >
-              <Terminal sx={{ fontSize: 26 }} />
             </Box>
 
             <Typography
