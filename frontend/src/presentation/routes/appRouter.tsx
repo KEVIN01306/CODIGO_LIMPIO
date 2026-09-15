@@ -9,6 +9,7 @@ import { usersRoutes } from '../../modules/users/presentation/users.routes';
 import { studentDashboardRoutes } from '../../modules/studentDashboard/studentDashboard.routes';
 import { teacherDashboardRoutes } from '../../modules/teacherDashboard/teacherDashboard.routes';
 import { tenantRoutes } from '../../modules/tenant/tenant.routes';
+import { rolesRoutes } from '../../modules/roles/roles.routes';
 
 const BlankLayout = lazy(() => import('../layouts/blankLayout/BlankLayout'));
 const FullLayout = lazy(() => import('../layouts/fullLayout/FullLayout'));
@@ -45,7 +46,7 @@ export const appRouter = createBrowserRouter([
     children: [
       {
         element: (
-          <Suspense fallback={<FullPageLoader />}>
+        <Suspense fallback={<FullPageLoader />}>
             <FullLayout />
           </Suspense>
         ),
@@ -55,6 +56,7 @@ export const appRouter = createBrowserRouter([
           assignmentRoutes,
           usersRoutes,
           ...tenantRoutes,
+          ...rolesRoutes,
           {
             path: 'my-courses',
             children: studentDashboardRoutes,

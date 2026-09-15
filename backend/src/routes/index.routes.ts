@@ -13,6 +13,7 @@ import AssignmentRoutes from "@modules/Assignment/assignment.routes.js";
 import { evaluationRoutes } from "../modules/Evaluation/evaluation.routes.js";
 import { aiRoutes } from "../modules/AI/presentation/ai.routes.js";
 import TenantRoutes from "@modules/Tenant/presentation/tenant.routes.js";
+import RolesRoutes from "@modules/Roles/presentation/roles.routes.js";
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.use('/assignments', AssignmentRoutes);
 router.use('/evaluations', evaluationRoutes);
 router.use('/ai', aiRoutes);
 router.use('/tenant', TenantRoutes);
+router.use('/roles', RolesRoutes);
 
 router.use(ErrorMiddleware)
 
