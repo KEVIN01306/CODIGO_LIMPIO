@@ -162,10 +162,10 @@ const DashboardPage = () => {
   const isStudent = data.user.roles.includes('STUDENT');
   const isTeacher = data.user.roles.includes('TEACHER');
 
-  let greeting = 'Bienvenido de nuevo';
-  if (isStudent) greeting = '¡Hola de nuevo, Alumno';
-  if (isTeacher) greeting = '¡Hola de nuevo, Profesor';
-  if (isStudent && isTeacher) greeting = '¡Bienvenido';
+  let greeting = 'Welcome back';
+  if (isStudent) greeting = 'Welcome back, Alumno';
+  if (isTeacher) greeting = 'Welcome back, Profesor';
+  if (isStudent && isTeacher) greeting = 'Welcome back';
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1200, mx: 'auto' }}>
@@ -233,10 +233,10 @@ const DashboardPage = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 400, fontSize: '20px', letterSpacing: '-0.5px', color: 'text.primary' }}>
-                Mis Cursos Inscritos
+                My Enrolled Courses
               </Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '13px', mt: 0.25 }}>
-                Accede a tus asignaturas y entregas de evaluaciones activas.
+                Access your courses and active assessments.
               </Typography>
             </Box>
             <Chip
