@@ -163,8 +163,8 @@ const DashboardPage = () => {
   const isTeacher = data.user.roles.includes('TEACHER');
 
   let greeting = 'Welcome back';
-  if (isStudent) greeting = 'Welcome back, Alumno';
-  if (isTeacher) greeting = 'Welcome back, Profesor';
+  if (isStudent) greeting = 'Welcome back, Student';
+  if (isTeacher) greeting = 'Welcome back, Teacher';
   if (isStudent && isTeacher) greeting = 'Welcome back';
 
   return (
