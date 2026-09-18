@@ -89,7 +89,7 @@ const SandboxSubmitDialog: React.FC<Props> = ({
           }
           sx={{
             bgcolor: 'primary.main',
-            color: '#ffffff',
+            color: 'primary.contrastText',
             borderRadius: '10px',
             fontWeight: 500,
             '&:hover': { bgcolor: 'primary.dark' },

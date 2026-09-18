@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useAuthStore } from '../../../../core/store/auth.store';
-import { getSubmissionById, syncSubmission, finishSubmission } from '../../infrastructure/submission.service';
+import { getSubmissionById, finishSubmission } from '../../infrastructure/submission.service';
 import { parseCodeSnapshot } from '../../sandbox.utils';
 
 import { useSandboxFiles } from '../hooks/useSandboxFiles';
@@ -23,7 +23,6 @@ import SandboxFileTree from '../components/SandboxFileTree.component';
 import SandboxCodeEditor from '../components/SandboxCodeEditor.component';
 import SandboxOutput from '../components/SandboxOutput.component';
 import SandboxSubmitDialog from '../components/SandboxSubmitDialog.component';
-import SandboxWarningDialog from '../components/SandboxWarningDialog.component';
 import SandboxAIChat from '../components/SandboxAIChat.component';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -34,7 +33,6 @@ import SandboxAIChat from '../components/SandboxAIChat.component';
  * Orchestrates the sandbox experience. Responsibilities here:
  *   - Load submission metadata.
  *   - Coordinate file state, persistence, and execution hooks.
- *   - Handle anti-cheat events.
  *   - Connect components via props/callbacks.
  *
  * All UI rendering is delegated to focused components.
@@ -52,15 +50,9 @@ const SandboxEditor: React.FC = () => {
   // ── UI dialogs ───────────────────────────────────────────────────────────
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [warningOpen, setWarningOpen] = useState(false);
-  const [warningMessage, setWarningMessage] = useState('');
   const [outputOpen, setOutputOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(true);
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
-
-  // ── Anti-cheat counters ──────────────────────────────────────────────────
-  const [tabSwitches, setTabSwitches] = useState(0);
-  const [clipboardAttempts, setClipboardAttempts] = useState(0);
 
   // ── Hooks ────────────────────────────────────────────────────────────────
   const {
@@ -92,6 +84,20 @@ const SandboxEditor: React.FC = () => {
   // Flag to ignore blur events triggered around Cmd+S / Ctrl+S
   const recentSaveShortcutRef = useRef(false);
 
+  // Helper to cleanly exit Safe Exam Browser session
+  const triggerSebExit = () => {
+    // 1. Navigate to /exam-finished which triggers the SEB quitURL interceptor
+    window.location.href = '/exam-finished';
+    // 2. Fallback to protocol schemes & window.close()
+    try {
+      const quitProtocol = window.location.protocol === 'https:' ? 'sebs://quit' : 'seb://quit';
+      window.location.replace(quitProtocol);
+    } catch { }
+    try {
+      window.close();
+    } catch { }
+  };
+
   // ── Initial Load ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!submissionId) return;
@@ -101,6 +107,14 @@ const SandboxEditor: React.FC = () => {
           // If already submitted or flagged, ensure local files are wiped
           clearSubmissionLocalStorage(submissionId, user?.id);
           clearAssessmentSessionActive(submissionId);
+
+          if (data.assessment?.strictMode) {
+            toast.info('This assessment has already been completed.');
+            setTimeout(() => {
+              triggerSebExit();
+            }, 1000);
+            return;
+          }
 
           if (data.assessment?.offeringId && (data.assessmentId || data.assessment?.id)) {
             toast.info('This assessment has already been submitted. Redirecting to feedback...');
@@ -112,8 +126,11 @@ const SandboxEditor: React.FC = () => {
           return;
         }
         setSubmission(data);
-        setTabSwitches(data.tabSwitchesCount || 0);
-        setClipboardAttempts(data.clipboardAttempts || 0);
+
+        // Strict mode: replace navigation history state so previous pages are not retained
+        if (data.assessment?.strictMode) {
+          window.history.replaceState(null, '', window.location.href);
+        }
 
         const lang = data.assessment?.allowedLanguage || 'javascript';
         const descriptionText = data.assessment?.description || '';
@@ -157,6 +174,21 @@ const SandboxEditor: React.FC = () => {
       });
   }, [submissionId, user?.id, navigate]);
 
+  // ── Strict Mode bfcache prevention ───────────────────────────────────────
+  useEffect(() => {
+    if (!submission?.assessment?.strictMode) return;
+    const handlePageShow = (event: PageTransitionEvent) => {
+      // If page is restored from bfcache, reload to force re-verification
+      if (event.persisted) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, [submission?.assessment?.strictMode]);
+
   // ── Navigation / Unmount Cleanup ─────────────────────────────────────────
   useEffect(() => {
     return () => {
@@ -171,63 +203,6 @@ const SandboxEditor: React.FC = () => {
       }
     };
   }, [submissionId, user?.id]);
-
-  // ── Anti-cheat ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (loading || !submission?.assessment?.strictMode) return;
-
-    const warn = (msg: string) => {
-      setWarningMessage(msg);
-      setWarningOpen(true);
-    };
-
-    const syncInfractions = (tabs: number, clips: number) => {
-      if (!submissionId) return;
-      syncSubmission(submissionId, { tabSwitchesCount: tabs, clipboardAttempts: clips })
-        .catch(console.error);
-    };
-
-    const handleBlur = () => {
-      // If Cmd+S / Ctrl+S was recently pressed, ignore blur so it is NOT counted as a tab switch
-      if (recentSaveShortcutRef.current) return;
-
-      setTabSwitches((prev) => {
-        const next = prev + 1;
-        warn('You have left the sandbox window! This incident has been recorded.');
-        syncInfractions(next, clipboardAttempts);
-        return next;
-      });
-    };
-
-    const handleCopy = (e: ClipboardEvent) => {
-      e.preventDefault();
-      setClipboardAttempts((prev) => {
-        const next = prev + 1;
-        warn('Copying is disabled in strict mode. This incident has been recorded.');
-        syncInfractions(tabSwitches, next);
-        return next;
-      });
-    };
-
-    const handlePaste = (e: ClipboardEvent) => {
-      e.preventDefault();
-      setClipboardAttempts((prev) => {
-        const next = prev + 1;
-        warn('Pasting is disabled in strict mode. This incident has been recorded.');
-        syncInfractions(tabSwitches, next);
-        return next;
-      });
-    };
-
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('copy', handleCopy);
-    window.addEventListener('paste', handlePaste);
-    return () => {
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('copy', handleCopy);
-      window.removeEventListener('paste', handlePaste);
-    };
-  }, [loading, submission, tabSwitches, clipboardAttempts, submissionId]);
 
   // ── Keyboard shortcut: Cmd+S / Ctrl+S to save, Cmd+B / Ctrl+B to toggle explorer ─
   useEffect(() => {
@@ -281,10 +256,18 @@ const SandboxEditor: React.FC = () => {
       toast.success('Assessment submitted successfully!');
       setIsSubmitting(false);
       setSubmitDialogOpen(false);
-      if (window.history.length > 1) {
-        navigate(-1);
+
+      if (submission?.assessment?.strictMode) {
+        // Strict mode: Terminate Safe Exam Browser session, do not navigate inside SPA
+        setTimeout(() => {
+          triggerSebExit();
+        }, 1000);
       } else {
-        navigate('/dashboard');
+        if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       // 4. Failed submission: DO NOT clear localStorage. Keep work and allow retry.
@@ -325,6 +308,7 @@ const SandboxEditor: React.FC = () => {
 
   const fileList = Object.keys(files);
   const assessmentTitle = submission?.assessment?.title || 'Sandbox Editor';
+  const isStrictMode = Boolean(submission?.assessment?.strictMode);
 
   return (
     <Box sx={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
@@ -332,8 +316,8 @@ const SandboxEditor: React.FC = () => {
       <SandboxToolbar
         title={assessmentTitle}
         persistenceStatus={persistenceStatus}
-        isStrictMode={!!submission?.assessment?.strictMode}
-        infractionCount={tabSwitches + clipboardAttempts}
+        isStrictMode={isStrictMode}
+        infractionCount={0}
         isRunning={isRunning}
         isSubmitting={isSubmitting}
         isAIChatOpen={isAIChatOpen}
@@ -342,7 +326,7 @@ const SandboxEditor: React.FC = () => {
         onToggleFileTree={() => setIsFileTreeOpen((prev) => !prev)}
         onRunCode={handleRunCode}
         onSubmit={() => setSubmitDialogOpen(true)}
-        onExit={handleExit}
+        onExit={isStrictMode ? undefined : handleExit}
       />
 
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -352,15 +336,14 @@ const SandboxEditor: React.FC = () => {
           initialHistory={submission?.chatHistory}
           currentCode={
             selectedFile && files[selectedFile] !== undefined
-              ? `=== Active File (${selectedFile}) ===\n${files[selectedFile]}${
-                  Object.entries(files).filter(([name]) => name !== selectedFile && !name.endsWith('/.gitkeep')).length > 0
-                    ? `\n\n=== Other Workspace Files ===\n` +
-                      Object.entries(files)
-                        .filter(([name]) => name !== selectedFile && !name.endsWith('/.gitkeep'))
-                        .map(([name, content]) => `--- ${name} ---\n${content}`)
-                        .join('\n\n')
-                    : ''
-                }`
+              ? `=== Active File (${selectedFile}) ===\n${files[selectedFile]}${Object.entries(files).filter(([name]) => name !== selectedFile && !name.endsWith('/.gitkeep')).length > 0
+                ? `\n\n=== Other Workspace Files ===\n` +
+                Object.entries(files)
+                  .filter(([name]) => name !== selectedFile && !name.endsWith('/.gitkeep'))
+                  .map(([name, content]) => `--- ${name} ---\n${content}`)
+                  .join('\n\n')
+                : ''
+              }`
               : (files[selectedFile] ?? '')
           }
           language={submission?.assessment?.allowedLanguage || 'javascript'}
@@ -416,12 +399,6 @@ const SandboxEditor: React.FC = () => {
         isSubmitting={isSubmitting}
         onClose={() => setSubmitDialogOpen(false)}
         onConfirm={handleSubmit}
-      />
-
-      <SandboxWarningDialog
-        open={warningOpen}
-        message={warningMessage}
-        onClose={() => setWarningOpen(false)}
       />
     </Box>
   );

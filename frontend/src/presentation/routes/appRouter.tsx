@@ -15,6 +15,7 @@ const BlankLayout = lazy(() => import('../layouts/blankLayout/BlankLayout'));
 const FullLayout = lazy(() => import('../layouts/fullLayout/FullLayout'));
 const ProtectedRoute = lazy(() => import('./ProtectedRoute'));
 const AccessDeniedPage = lazy(() => import('../../shared/pages/AccessDeniedPage'));
+const ExamFinishedPage = lazy(() => import('../../shared/pages/ExamFinishedPage'));
 const ProfilePage = lazy(() => import('../../modules/auth/presentation/pages/Profile.page'));
 const SandboxEditorPage = lazy(() => import('../../modules/sandbox/presentation/pages/SandboxEditor.page'));
 
@@ -35,6 +36,14 @@ export const appRouter = createBrowserRouter([
     children: [
       ...authRoutes,
     ],
+  },
+  {
+    path: '/exam-finished',
+    element: (
+      <Suspense fallback={<FullPageLoader />}>
+        <ExamFinishedPage />
+      </Suspense>
+    ),
   },
   {
     path: '/',

@@ -82,7 +82,7 @@ const SandboxToolbar: React.FC<Props> = ({
     >
       {/* Left: exit button + title */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
-        {onExit && (
+        {onExit && !isStrictMode && (
           <Tooltip title="Exit Assessment" arrow>
             <IconButton
               size="small"
@@ -120,7 +120,7 @@ const SandboxToolbar: React.FC<Props> = ({
 
         {isStrictMode && (
           <Chip
-            label={`Strict Mode · ${infractionCount} infraction${infractionCount !== 1 ? 's' : ''}`}
+            label="Strict Mode"
             size="small"
             sx={{
               fontSize: '0.72rem',
@@ -226,7 +226,7 @@ const SandboxToolbar: React.FC<Props> = ({
           }
           sx={{
             bgcolor: 'primary.main',
-            color: '#ffffff',
+            color: 'primary.contrastText',
             borderRadius: '10px',
             fontSize: '0.8rem',
             fontWeight: 500,
