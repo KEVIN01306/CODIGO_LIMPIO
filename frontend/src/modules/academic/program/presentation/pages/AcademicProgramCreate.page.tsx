@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Typography, Paper, Breadcrumbs, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import AcademicProgramForm from '../components/AcademicProgramForm.component';

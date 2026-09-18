@@ -127,7 +127,7 @@ export class FinishSubmissionUseCase {
         const code = this.formatStudentCode(activeSnapshot);
 
         // 8. Call AI Grading Use Case
-        let gradingResult: { totalScore: number; aiFeedback: string };
+        let gradingResult: { totalScore: number; aiFeedback: string } | null = null;
         try {
             gradingResult = await this.gradeAssessmentUseCase.execute({
                 problem: {
@@ -144,22 +144,17 @@ export class FinishSubmissionUseCase {
                 executionResult
             });
         } catch (aiErr: any) {
-            console.error('[FinishSubmissionUseCase] AI Grading failed:', aiErr);
+            console.warn('[FinishSubmissionUseCase] AI Grading service unavailable. Falling back to SUBMITTED status:', aiErr?.message || aiErr);
+        }
 
-            // Safe fallback: preserve student submission with SUBMITTED status (do not invent fake score or feedback)
-            await this.submissionRepo.update(id, {
+        if (!gradingResult) {
+            // Safe fallback: preserve student submission with SUBMITTED status for teacher manual grading
+            const submitted = await this.submissionRepo.update(id, {
                 status: 'SUBMITTED',
                 submittedAt: new Date(),
                 testOutput: executionResult
             });
-
-            throw aiErr instanceof AppError
-                ? aiErr
-                : new AppError(
-                    'AI grading service failed. Your submission has been saved as SUBMITTED for teacher review.',
-                    'AI_GRADING_FAILED',
-                    502
-                );
+            return submitted || submission;
         }
 
         // 9. Persist successful evaluation in Submission

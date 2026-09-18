@@ -10,7 +10,9 @@ export class GetSebConfigUseCase {
             throw new AppError("Tenant not found", "NOT_FOUND", 404);
         }
         return {
-            defaultSebConfigKey: tenant.defaultSebConfigKey
+            defaultSebConfigKey: tenant.defaultSebConfigKey,
+            defaultSebConfigUrl: tenant.defaultSebConfigFilePath,
+            defaultSebConfigFilePath: tenant.defaultSebConfigFilePath
         };
     }
 }

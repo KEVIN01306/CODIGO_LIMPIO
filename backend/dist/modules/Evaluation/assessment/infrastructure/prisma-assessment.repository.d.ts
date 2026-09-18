@@ -14,5 +14,6 @@ export declare class PrismaAssessmentRepository implements AssessmentRepository 
         total: number;
     }>;
     delete(id: string): Promise<void>;
+    getOfferingTenantId(offeringId: string): Promise<string | null>;
 }
 //# sourceMappingURL=prisma-assessment.repository.d.ts.map

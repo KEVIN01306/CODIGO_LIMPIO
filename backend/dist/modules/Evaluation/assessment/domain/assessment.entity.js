@@ -13,8 +13,11 @@ export class AssessmentEntity {
     createdAt;
     updatedAt;
     offering;
-    constructor(id, offeringId, title, type, maxScore, strictMode, description, weight, dueDate, timeLimitMinutes, allowedLanguage, createdAt, updatedAt, offering // Can be typed fully if needed
-    ) {
+    requireSeb;
+    sebConfigKey;
+    sebConfigFilePath;
+    constructor(id, offeringId, title, type, maxScore, strictMode, description, weight, dueDate, timeLimitMinutes, allowedLanguage, createdAt, updatedAt, offering, // Can be typed fully if needed
+    requireSeb = false, sebConfigKey, sebConfigFilePath) {
         this.id = id;
         this.offeringId = offeringId;
         this.title = title;
@@ -29,6 +32,9 @@ export class AssessmentEntity {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.offering = offering;
+        this.requireSeb = requireSeb;
+        this.sebConfigKey = sebConfigKey;
+        this.sebConfigFilePath = sebConfigFilePath;
     }
 }
 //# sourceMappingURL=assessment.entity.js.map

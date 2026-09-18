@@ -12,13 +12,14 @@ generator client {
 // ------------------------------------------------------
 
 model Tenant {
-  id                  String   @id @default(uuid())
-  slug                String   @unique // e.g. "url-subdomain-universidad"
-  name                String
-  isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  defaultSebConfigKey String?  @map("default_seb_config_key")
+  id                       String   @id @default(uuid())
+  slug                     String   @unique // e.g. "url-subdomain-universidad"
+  name                     String
+  isActive                 Boolean  @default(true) @map("is_active")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+  defaultSebConfigKey      String?  @map("default_seb_config_key")
+  defaultSebConfigFilePath String?  @map("default_seb_config_file_path")
 
   campuses           Campus[]
   programs           AcademicProgram[]
@@ -268,13 +269,14 @@ model Assessment {
   createdAt           DateTime       @default(now()) @map("created_at")
   updatedAt           DateTime       @updatedAt @map("updated_at")
 
-  requireSeb   Boolean @default(false) @map("require_seb")
-  sebConfigKey String? @map("seb_config_key")
+  requireSeb        Boolean @default(false) @map("require_seb")
+  sebConfigKey      String? @map("seb_config_key")
+  sebConfigFilePath String? @map("seb_config_file_path")
 
   // Configuración de entorno de examen
   timeLimitMinutes Int?    @map("time_limit_minutes")
   allowedLanguage  String? @map("allowed_language") // e.g. "typescript", "angular"
-  strictMode       Boolean @default(true) @map("strict_mode") // Bloqueo copy/paste, fullscreen
+  strictMode       Boolean @default(false) @map("strict_mode") // Bloqueo copy/paste, fullscreen
 
   offering          CourseOffering     @relation(fields: [offeringId], references: [id], onDelete: Cascade)
   submissions       Submission[]

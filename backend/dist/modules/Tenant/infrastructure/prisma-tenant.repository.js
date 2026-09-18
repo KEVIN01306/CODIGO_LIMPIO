@@ -18,7 +18,8 @@ export class PrismaTenantRepository {
                 isActive: tenant.isActive,
                 createdAt: tenant.createdAt,
                 updatedAt: tenant.updatedAt,
-                defaultSebConfigKey: tenant.defaultSebConfigKey
+                defaultSebConfigKey: tenant.defaultSebConfigKey,
+                defaultSebConfigFilePath: tenant.defaultSebConfigFilePath
             };
         }
         catch (error) {
@@ -39,7 +40,8 @@ export class PrismaTenantRepository {
                 isActive: tenant.isActive,
                 createdAt: tenant.createdAt,
                 updatedAt: tenant.updatedAt,
-                defaultSebConfigKey: tenant.defaultSebConfigKey
+                defaultSebConfigKey: tenant.defaultSebConfigKey,
+                defaultSebConfigFilePath: tenant.defaultSebConfigFilePath
             };
         }
         catch (error) {
@@ -70,18 +72,28 @@ export class PrismaTenantRepository {
             throw PrismaErrorMapper.map(error);
         }
     }
-    async updateSebConfig(id, defaultSebConfigKey) {
+    async updateSebConfig(id, data) {
         try {
+            const updateData = {};
+            if (data.defaultSebConfigKey !== undefined) {
+                updateData.defaultSebConfigKey = data.defaultSebConfigKey;
+            }
+            if (data.defaultSebConfigFilePath !== undefined) {
+                updateData.defaultSebConfigFilePath = data.defaultSebConfigFilePath;
+            }
             const updated = await this.prisma.tenant.update({
                 where: { id },
-                data: {
-                    defaultSebConfigKey
-                },
+                data: updateData,
                 select: {
-                    defaultSebConfigKey: true
+                    defaultSebConfigKey: true,
+                    defaultSebConfigFilePath: true
                 }
             });
-            return updated;
+            return {
+                defaultSebConfigKey: updated.defaultSebConfigKey,
+                defaultSebConfigUrl: updated.defaultSebConfigFilePath,
+                defaultSebConfigFilePath: updated.defaultSebConfigFilePath
+            };
         }
         catch (error) {
             throw PrismaErrorMapper.map(error);

@@ -8,6 +8,7 @@ export declare class PrismaCourseEnrollmentsRepository implements CourseEnrollme
     create(data: any): Promise<CourseEnrollmentEntity>;
     update(id: string, data: any): Promise<CourseEnrollmentEntity | null>;
     findById(id: string): Promise<CourseEnrollmentEntity | null>;
+    findByOfferingAndStudent(offeringId: string, studentId: string): Promise<CourseEnrollmentEntity | null>;
     findAll(page: number, limit: number, filters?: any): Promise<{
         data: CourseEnrollmentEntity[];
         total: number;

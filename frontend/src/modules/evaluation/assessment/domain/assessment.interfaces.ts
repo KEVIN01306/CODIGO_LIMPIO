@@ -10,6 +10,9 @@ export interface Assessment {
   timeLimitMinutes?: number;
   allowedLanguage?: string;
   strictMode: boolean;
+  requireSeb?: boolean;
+  sebConfigKey?: string | null;
+  sebConfigFilePath?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +28,10 @@ export interface CreateAssessmentDTO {
   timeLimitMinutes?: number;
   allowedLanguage?: string;
   strictMode?: boolean;
+  requireSeb?: boolean;
+  sebConfigKey?: string;
+  sebConfigFile?: File | null;
+  sebConfigFilePath?: string | null;
 }
 
 export interface UpdateAssessmentDTO extends Partial<CreateAssessmentDTO> { }

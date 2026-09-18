@@ -25,6 +25,7 @@ export declare class SubmissionController extends BaseController {
     private readonly getStudentCourseGradesUseCase;
     constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase, getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase);
     start: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    getActive: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     sync: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     finish: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     getById: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;

@@ -77,6 +77,13 @@ submissionRoutes.post(
     controller.finish
 );
 
+// Get calling student's active in-progress submission (before /:id)
+submissionRoutes.get(
+    '/active',
+    authMiddleware.checkPermission(['assessments:read']),
+    controller.getActive
+);
+
 // Get calling student's submissions for an offering (before /:id)
 submissionRoutes.get(
     '/my-submissions',

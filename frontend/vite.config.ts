@@ -7,6 +7,13 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     allowedHosts: ['app.ccode.academy', 'www.app.ccode.academy'],
-    port: 3001,
+    port: 8001,
+    proxy: {
+      '/seb': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
 })
+

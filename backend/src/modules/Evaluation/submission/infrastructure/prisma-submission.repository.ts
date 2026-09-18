@@ -3,7 +3,7 @@ import { SubmissionRepository } from '../domain/submission.repository.js';
 import { SubmissionEntity } from '../domain/submission.entity.js';
 
 export class PrismaSubmissionRepository implements SubmissionRepository {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClient) { }
 
     private toEntity(record: any): SubmissionEntity {
         return new SubmissionEntity(
@@ -31,6 +31,15 @@ export class PrismaSubmissionRepository implements SubmissionRepository {
         const record = await this.prisma.submission.findFirst({
             where: { assessmentId, studentId },
             include: { assessment: true, student: { include: { user: true } } }
+        });
+        return record ? this.toEntity(record) : null;
+    }
+
+    async findActiveByStudent(studentId: string): Promise<SubmissionEntity | null> {
+        const record = await this.prisma.submission.findFirst({
+            where: { studentId, status: 'IN_PROGRESS' },
+            include: { assessment: true, student: { include: { user: true } } },
+            orderBy: { submittedAt: 'desc' }
         });
         return record ? this.toEntity(record) : null;
     }

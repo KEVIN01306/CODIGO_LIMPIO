@@ -12,6 +12,7 @@ import {
 import { getDashboardSummary } from '../../infrastructure/dashboard.service';
 import type { DashboardSummary, CourseSummary } from '../../domain/dashboard.interfaces';
 import { handleApiError } from '../../../../core/api/api-error-handler';
+import api from '../../../../core/api/axios.config';
 
 const CourseCard = ({ course, isTeacher }: { course: CourseSummary; isTeacher?: boolean }) => {
   const navigate = useNavigate();
@@ -58,72 +59,108 @@ const CourseCard = ({ course, isTeacher }: { course: CourseSummary; isTeacher?: 
           borderColor: 'divider',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04rem', fontSize: '11px' }}>
-            {course.code} • Sección {course.section}
-          </Typography>
-          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'info.main' }} />
-        </Box>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 450, fontSize: '16px', letterSpacing: '-0.32px', color: 'text.primary', lineHeight: 1.3 }} noWrap>
-          {course.name}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: '12px' }}>
-          Cycle: {course.cycle}
-        </Typography>
-      </Box>
-
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 2.5 }}>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
           <Chip
-            label={`${course.credits} Créditos`}
+            label={course.code || 'COURSE'}
             size="small"
-            variant="outlined"
             sx={{
               fontWeight: 500,
               fontSize: '11px',
-              borderRadius: '5.26px',
-              borderColor: 'rgba(59, 130, 246, 0.3)',
-              color: '#60a5fa',
-              bgcolor: 'rgba(59, 130, 246, 0.08)',
-            }}
-          />
-          <Chip
-            label={course.cycle}
-            size="small"
-            variant="outlined"
-            sx={{
-              borderRadius: '5.26px',
+              letterSpacing: '-0.2px',
+              borderRadius: '6px',
+              bgcolor: 'background.paper',
+              border: '0.5px solid',
               borderColor: 'divider',
               color: 'text.secondary',
-              fontWeight: 450,
-              fontSize: '11px',
-              bgcolor: 'action.hover',
+              height: '22px',
             }}
           />
+          {course.role && (
+            <Chip
+              label={course.role}
+              size="small"
+              sx={{
+                fontSize: '10px',
+                fontWeight: 500,
+                borderRadius: '6px',
+                height: '20px',
+                bgcolor: course.role === 'TEACHER' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                color: course.role === 'TEACHER' ? '#60a5fa' : '#34d399',
+                border: '0.5px solid',
+                borderColor: course.role === 'TEACHER' ? 'rgba(59, 130, 246, 0.25)' : 'rgba(16, 185, 129, 0.25)',
+              }}
+            />
+          )}
+        </Box>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 500,
+            fontSize: '16px',
+            letterSpacing: '-0.3px',
+            lineHeight: 1.3,
+            color: 'text.primary',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            minHeight: '42px',
+          }}
+        >
+          {course.name}
+        </Typography>
+      </Box>
+
+      <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <Box sx={{ mb: 2 }}>
+          {course.campus && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.2 }}>
+              <SchoolOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography variant="body2" sx={{ fontSize: '13px', color: 'text.secondary' }}>
+                {course.campus}
+              </Typography>
+            </Box>
+          )}
+          {course.cycle && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.2 }}>
+              <BadgeOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography variant="body2" sx={{ fontSize: '13px', color: 'text.secondary' }}>
+                Cycle: {course.cycle}
+              </Typography>
+            </Box>
+          )}
+          {course.section && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <MenuBookOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography variant="body2" sx={{ fontSize: '13px', color: 'text.secondary' }}>
+                Section {course.section}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Button
           fullWidth
           variant="outlined"
-          endIcon={<ArrowForward sx={{ fontSize: 16 }} />}
           onClick={handleNavigate}
+          endIcon={<ArrowForward sx={{ fontSize: 16 }} />}
           sx={{
-            mt: 'auto',
-            borderRadius: '10px',
+            borderRadius: '8px',
+            textTransform: 'none',
             fontWeight: 450,
             fontSize: '13px',
-            textTransform: 'none',
-            border: '0.5px solid',
-            borderColor: 'divider !important',
+            letterSpacing: '-0.1px',
+            py: 0.8,
+            borderColor: 'divider',
             color: 'text.primary',
-            backgroundColor: 'action.hover',
+            bgcolor: 'background.paper',
             '&:hover': {
-              borderColor: 'text.secondary !important',
-              backgroundColor: 'action.selected',
+              borderColor: 'text.secondary',
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#252528' : '#f1f5f9'),
             },
           }}
         >
-          {isTeacher ? 'Gestionar Evaluaciones' : 'Ver Curso'}
+          {isTeacher ? 'Manage Course' : 'View Course & Assessments'}
         </Button>
       </CardContent>
     </Card>
@@ -136,6 +173,24 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if running inside Safe Exam Browser or if SEB cookie exists
+    const cookieMatch = document.cookie.match(/(?:^|; )seb_active_submission_id=([^;]+)/);
+    const sebCookieSubmissionId = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+
+    if (sebCookieSubmissionId) {
+      document.cookie = 'seb_active_submission_id=; path=/; max-age=0;';
+      navigate(`/sandbox/${sebCookieSubmissionId}`, { replace: true });
+      return;
+    }
+
+    if (navigator.userAgent.includes('SEB') || navigator.userAgent.includes('SafeExamBrowser')) {
+      api.get('/evaluations/submissions/active').then((res) => {
+        if (res.data?.data?.id) {
+          navigate(`/sandbox/${res.data.data.id}`, { replace: true });
+        }
+      }).catch(() => {});
+    }
+
     const fetchData = async () => {
       try {
         const summary = await getDashboardSummary();
@@ -147,7 +202,7 @@ const DashboardPage = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return (

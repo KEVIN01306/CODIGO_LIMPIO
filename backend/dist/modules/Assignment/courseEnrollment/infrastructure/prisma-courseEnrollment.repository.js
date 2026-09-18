@@ -37,6 +37,16 @@ export class PrismaCourseEnrollmentsRepository {
         });
         return record ? this.toEntity(record) : null;
     }
+    async findByOfferingAndStudent(offeringId, studentId) {
+        const record = await this.prisma.courseEnrollment.findFirst({
+            where: {
+                offeringId,
+                studentId,
+            },
+            include: { offering: { include: { course: true, cycle: true, campus: true, teacher: { include: { user: true } } } }, student: { include: { user: true } } }
+        });
+        return record ? this.toEntity(record) : null;
+    }
     async findAll(page, limit, filters) {
         const skip = (page - 1) * limit;
         const where = {};

@@ -13,6 +13,9 @@ export class AssessmentEntity {
         public readonly allowedLanguage?: string,
         public readonly createdAt?: Date,
         public readonly updatedAt?: Date,
-        public readonly offering?: any // Can be typed fully if needed
+        public readonly offering?: any, // Can be typed fully if needed
+        public readonly requireSeb: boolean = false,
+        public readonly sebConfigKey?: string | null,
+        public readonly sebConfigFilePath?: string | null
     ) {}
 }

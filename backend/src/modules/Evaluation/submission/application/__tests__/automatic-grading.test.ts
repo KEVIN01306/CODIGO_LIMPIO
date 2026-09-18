@@ -54,6 +54,7 @@ function createMockRepo(initialSubmission: SubmissionEntity) {
     const repo: SubmissionRepository = {
         findById: async (id: string) => (current.id === id ? current : null),
         findByAssessmentAndStudent: async () => null,
+        findActiveByStudent: async () => null,
         create: async () => current,
         update: async (id: string, data: any) => {
             updates.push(data);
@@ -336,18 +337,10 @@ describe('Automatic AI Assessment Grading Flow', () => {
 
             const finishUseCase = new FinishSubmissionUseCase(repo, mockRunCode, gradeUseCase, prisma);
 
-            await assert.rejects(
-                async () => {
-                    await finishUseCase.execute('sub-123', 'user-1', { entryFile: 'src/index.ts' });
-                },
-                (err: any) => {
-                    assert.equal(err instanceof AppError, true);
-                    assert.equal(err.code, 'AI_GRADING_FAILED');
-                    return true;
-                }
-            );
+            const result = await finishUseCase.execute('sub-123', 'user-1', { entryFile: 'src/index.ts' });
 
             // Verify submission is safely SUBMITTED, NOT EVALUATED, and has NO fake score or fake feedback
+            assert.equal(result.status, 'SUBMITTED');
             const current = getCurrent();
             assert.equal(current.status, 'SUBMITTED');
             assert.equal(current.totalScore, null);

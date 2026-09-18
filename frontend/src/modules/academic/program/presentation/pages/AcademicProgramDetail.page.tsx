@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Breadcrumbs, Link, CircularProgress, Grid, Divider, Button } from '@mui/material';
 import { Link as RouterLink, useParams, useNavigate } from 'react-router-dom';
 import { getAcademicProgramById } from '../../../program/infrastructure/academicProgram.service';
@@ -64,22 +64,22 @@ const AcademicProgramDetail = () => {
 
       <Paper sx={{ p: 3, backgroundColor: 'background.paper' }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="caption" color="text.secondary">Code</Typography>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>{data.code}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="caption" color="text.secondary">Name</Typography>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>{data.name}</Typography>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Divider sx={{ my: 1 }} />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="caption" color="text.secondary">Created At</Typography>
             <Typography variant="body1">{new Date(data.createdAt).toLocaleString()}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="caption" color="text.secondary">Updated At</Typography>
             <Typography variant="body1">{data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'N/A'}</Typography>
           </Grid>

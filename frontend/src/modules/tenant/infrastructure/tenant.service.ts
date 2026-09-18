@@ -25,8 +25,23 @@ export const getSebConfiguration = async (): Promise<SebConfiguration> => {
 };
 
 export const updateSebConfiguration = async (
-  data: UpdateSebConfigDTO
+  data: UpdateSebConfigDTO | FormData
 ): Promise<SebConfiguration> => {
+  if (data instanceof FormData) {
+    const response = await api.put<ApiResponse<SebConfiguration>>('/tenant/configuration/seb', data);
+    return response.data.data;
+  }
+
+  if (data.file) {
+    const formData = new FormData();
+    if (data.defaultSebConfigKey !== undefined && data.defaultSebConfigKey !== null) {
+      formData.append('defaultSebConfigKey', data.defaultSebConfigKey);
+    }
+    formData.append('file', data.file);
+    const response = await api.put<ApiResponse<SebConfiguration>>('/tenant/configuration/seb', formData);
+    return response.data.data;
+  }
+
   const response = await api.put<ApiResponse<SebConfiguration>>('/tenant/configuration/seb', data);
   return response.data.data;
 };

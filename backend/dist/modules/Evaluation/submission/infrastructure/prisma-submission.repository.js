@@ -14,6 +14,14 @@ export class PrismaSubmissionRepository {
         });
         return record ? this.toEntity(record) : null;
     }
+    async findActiveByStudent(studentId) {
+        const record = await this.prisma.submission.findFirst({
+            where: { studentId, status: 'IN_PROGRESS' },
+            include: { assessment: true, student: { include: { user: true } } },
+            orderBy: { submittedAt: 'desc' }
+        });
+        return record ? this.toEntity(record) : null;
+    }
     async create(data) {
         const record = await this.prisma.submission.create({
             data: {

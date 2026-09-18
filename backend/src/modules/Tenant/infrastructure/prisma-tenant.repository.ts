@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { TenantRepository } from "../domain/tenant.repository.js";
-import type { Tenant, TenantConfiguration, UpdateTenantConfiguration, SebConfiguration } from "../domain/tenant.entity.js";
+import type { Tenant, TenantConfiguration, UpdateTenantConfiguration, SebConfiguration, UpdateSebConfiguration } from "../domain/tenant.entity.js";
 import { PrismaErrorMapper } from "@shared/db/database/prisma/PrismaErrorMapper.js";
 
 export class PrismaTenantRepository implements TenantRepository {
@@ -20,7 +20,8 @@ export class PrismaTenantRepository implements TenantRepository {
                 isActive: tenant.isActive,
                 createdAt: tenant.createdAt,
                 updatedAt: tenant.updatedAt,
-                defaultSebConfigKey: tenant.defaultSebConfigKey
+                defaultSebConfigKey: tenant.defaultSebConfigKey,
+                defaultSebConfigFilePath: tenant.defaultSebConfigFilePath
             };
         } catch (error) {
             throw PrismaErrorMapper.map(error);
@@ -41,7 +42,8 @@ export class PrismaTenantRepository implements TenantRepository {
                 isActive: tenant.isActive,
                 createdAt: tenant.createdAt,
                 updatedAt: tenant.updatedAt,
-                defaultSebConfigKey: tenant.defaultSebConfigKey
+                defaultSebConfigKey: tenant.defaultSebConfigKey,
+                defaultSebConfigFilePath: tenant.defaultSebConfigFilePath
             };
         } catch (error) {
             throw PrismaErrorMapper.map(error);
@@ -73,19 +75,30 @@ export class PrismaTenantRepository implements TenantRepository {
         }
     }
 
-    async updateSebConfig(id: string, defaultSebConfigKey: string | null): Promise<SebConfiguration> {
+    async updateSebConfig(id: string, data: UpdateSebConfiguration): Promise<SebConfiguration> {
         try {
+            const updateData: any = {};
+            if (data.defaultSebConfigKey !== undefined) {
+                updateData.defaultSebConfigKey = data.defaultSebConfigKey;
+            }
+            if (data.defaultSebConfigFilePath !== undefined) {
+                updateData.defaultSebConfigFilePath = data.defaultSebConfigFilePath;
+            }
+
             const updated = await this.prisma.tenant.update({
                 where: { id },
-                data: {
-                    defaultSebConfigKey
-                },
+                data: updateData,
                 select: {
-                    defaultSebConfigKey: true
+                    defaultSebConfigKey: true,
+                    defaultSebConfigFilePath: true
                 }
             });
 
-            return updated;
+            return {
+                defaultSebConfigKey: updated.defaultSebConfigKey,
+                defaultSebConfigUrl: updated.defaultSebConfigFilePath,
+                defaultSebConfigFilePath: updated.defaultSebConfigFilePath
+            };
         } catch (error) {
             throw PrismaErrorMapper.map(error);
         }

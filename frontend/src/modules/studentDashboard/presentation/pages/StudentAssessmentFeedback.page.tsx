@@ -35,10 +35,11 @@ import {
 import { toast } from 'react-toastify';
 import {
   getStudentSubmissionFeedbackByAssessment,
-  startSubmission,
   type StudentSubmissionFeedback,
 } from '../../../sandbox/infrastructure/submission.service';
+import { startAssessment } from '../../../evaluation/assessment/infrastructure/assessment.service';
 import { subscribeToSubmissionEvents } from '../../../evaluation/assessment/infrastructure/submission-events.service';
+
 
 interface FileTreeNode {
   name: string;
@@ -102,6 +103,8 @@ const StudentAssessmentFeedbackPage: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string>('');
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
+  const [isStarting, setIsStarting] = useState<boolean>(false);
+
 
   const fetchFeedback = async () => {
     if (!assessmentId) return;
@@ -386,19 +389,30 @@ const StudentAssessmentFeedbackPage: React.FC = () => {
             {assessmentId && (
               <Button
                 variant="contained"
-                startIcon={<PlayArrow />}
+                disabled={isStarting}
+                startIcon={isStarting ? <CircularProgress size={16} color="inherit" /> : <PlayArrow />}
                 onClick={async () => {
+                  if (isStarting) return;
+                  setIsStarting(true);
                   try {
-                    const submission = await startSubmission(assessmentId);
-                    navigate(`/sandbox/${submission.id}`);
-                  } catch {
-                    toast.error('Could not start assessment.');
+                    const result = await startAssessment(assessmentId);
+                    if (result.requiresSeb) {
+                      window.location.href = result.redirectUrl;
+                    } else {
+                      navigate(result.redirectUrl);
+                    }
+                  } catch (err: any) {
+                    const errorMsg = err?.response?.data?.message || 'Could not start assessment.';
+                    toast.error(errorMsg);
+                  } finally {
+                    setIsStarting(false);
                   }
                 }}
               >
-                Start Assessment
+                {isStarting ? 'Starting...' : 'Start Assessment'}
               </Button>
             )}
+
           </Box>
         </Paper>
       </Box>

@@ -12,7 +12,9 @@ export class GetSebConfigUseCase {
         }
 
         return {
-            defaultSebConfigKey: tenant.defaultSebConfigKey
+            defaultSebConfigKey: tenant.defaultSebConfigKey,
+            defaultSebConfigUrl: tenant.defaultSebConfigFilePath,
+            defaultSebConfigFilePath: tenant.defaultSebConfigFilePath
         };
     }
 }

@@ -15,10 +15,13 @@ export interface UpdateTenantDTO {
 
 export interface SebConfiguration {
   defaultSebConfigKey: string | null;
+  defaultSebConfigUrl?: string | null;
+  defaultSebConfigFilePath?: string | null;
 }
 
 export interface UpdateSebConfigDTO {
-  defaultSebConfigKey: string | null;
+  defaultSebConfigKey?: string | null;
+  file?: File | null;
 }
 
 export interface TenantInfoFormValues {
@@ -29,4 +32,5 @@ export interface TenantInfoFormValues {
 
 export interface SebConfigFormValues {
   defaultSebConfigKey: string;
+  sebConfigFile?: File | null;
 }

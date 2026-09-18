@@ -21,7 +21,10 @@ export class PrismaAssessmentRepository implements AssessmentRepository {
             record.allowedLanguage,
             record.createdAt,
             record.updatedAt,
-            record.offering
+            record.offering,
+            record.requireSeb ?? false,
+            record.sebConfigKey,
+            record.sebConfigFilePath
         );
     }
 
@@ -37,7 +40,10 @@ export class PrismaAssessmentRepository implements AssessmentRepository {
                 dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
                 timeLimitMinutes: data.timeLimitMinutes,
                 allowedLanguage: data.allowedLanguage,
-                strictMode: data.strictMode ?? true,
+                strictMode: data.strictMode ?? false,
+                requireSeb: data.requireSeb ?? false,
+                sebConfigKey: data.sebConfigKey,
+                sebConfigFilePath: data.sebConfigFilePath,
             },
             include: { offering: { include: { course: true, cycle: true, campus: true } } }
         });
@@ -45,19 +51,23 @@ export class PrismaAssessmentRepository implements AssessmentRepository {
     }
 
     async update(id: string, data: UpdateAssessmentDTO): Promise<AssessmentEntity | null> {
+        const updateData: any = {};
+        if (data.title !== undefined) updateData.title = data.title;
+        if (data.description !== undefined) updateData.description = data.description;
+        if (data.type !== undefined) updateData.type = data.type as any;
+        if (data.maxScore !== undefined) updateData.maxScore = data.maxScore;
+        if (data.weight !== undefined) updateData.weight = data.weight;
+        if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+        if (data.timeLimitMinutes !== undefined) updateData.timeLimitMinutes = data.timeLimitMinutes;
+        if (data.allowedLanguage !== undefined) updateData.allowedLanguage = data.allowedLanguage;
+        if (data.strictMode !== undefined) updateData.strictMode = data.strictMode;
+        if (data.requireSeb !== undefined) updateData.requireSeb = data.requireSeb;
+        if (data.sebConfigKey !== undefined) updateData.sebConfigKey = data.sebConfigKey;
+        if (data.sebConfigFilePath !== undefined) updateData.sebConfigFilePath = data.sebConfigFilePath;
+
         const record = await this.prisma.assessment.update({
             where: { id },
-            data: {
-                title: data.title,
-                description: data.description,
-                type: data.type ? (data.type as any) : undefined,
-                maxScore: data.maxScore,
-                weight: data.weight,
-                dueDate: data.dueDate !== undefined ? (data.dueDate ? new Date(data.dueDate) : null) : undefined,
-                timeLimitMinutes: data.timeLimitMinutes,
-                allowedLanguage: data.allowedLanguage,
-                strictMode: data.strictMode,
-            },
+            data: updateData,
             include: { offering: { include: { course: true, cycle: true, campus: true } } }
         });
         return record ? this.toEntity(record) : null;
@@ -97,5 +107,13 @@ export class PrismaAssessmentRepository implements AssessmentRepository {
 
     async delete(id: string): Promise<void> {
         await this.prisma.assessment.delete({ where: { id } });
+    }
+
+    async getOfferingTenantId(offeringId: string): Promise<string | null> {
+        const offering = await this.prisma.courseOffering.findUnique({
+            where: { id: offeringId },
+            include: { campus: true }
+        });
+        return offering?.campus?.tenantId ?? null;
     }
 }

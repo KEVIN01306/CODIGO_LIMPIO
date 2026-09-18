@@ -9,5 +9,6 @@ export interface AssessmentRepository {
         total: number;
     }>;
     delete(id: string): Promise<void>;
+    getOfferingTenantId(offeringId: string): Promise<string | null>;
 }
 //# sourceMappingURL=assessment.repository.d.ts.map

@@ -43,6 +43,8 @@ submissionRoutes.post('/start', authMiddleware.checkPermission(['assessments:rea
 validatedMiddleware.validateBody(startSubmissionSchema), controller.start);
 submissionRoutes.patch('/:id/sync', authMiddleware.checkPermission(['assessments:read']), validatedMiddleware.validateBody(syncSubmissionSchema), controller.sync);
 submissionRoutes.post('/:id/finish', authMiddleware.checkPermission(['assessments:read']), controller.finish);
+// Get calling student's active in-progress submission (before /:id)
+submissionRoutes.get('/active', authMiddleware.checkPermission(['assessments:read']), controller.getActive);
 // Get calling student's submissions for an offering (before /:id)
 submissionRoutes.get('/my-submissions', authMiddleware.checkPermission(['assessments:read']), controller.getMySubmissions);
 // Get calling student's course grades for an offering (before /:id)

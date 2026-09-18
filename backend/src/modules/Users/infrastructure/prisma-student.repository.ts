@@ -37,6 +37,13 @@ export class PrismaStudentRepository implements StudentRepository {
         });
     }
 
+    async findByUserId(userId: string): Promise<any | null> {
+        return await this.prisma.studentProfile.findUnique({
+            where: { userId },
+            include: { user: true, campus: true }
+        });
+    }
+
     async update(id: string, data: any): Promise<any> {
         return await this.prisma.$transaction(async (tx) => {
             const profile = await tx.studentProfile.findUnique({ where: { id } });

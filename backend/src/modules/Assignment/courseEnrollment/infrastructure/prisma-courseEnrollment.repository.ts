@@ -51,6 +51,17 @@ export class PrismaCourseEnrollmentsRepository implements CourseEnrollmentReposi
         return record ? this.toEntity(record) : null;
     }
 
+    async findByOfferingAndStudent(offeringId: string, studentId: string): Promise<CourseEnrollmentEntity | null> {
+        const record = await this.prisma.courseEnrollment.findFirst({
+            where: {
+                offeringId,
+                studentId,
+            },
+            include: { offering: { include: { course: true, cycle: true, campus: true, teacher: { include: { user: true } } } }, student: { include: { user: true } } }
+        });
+        return record ? this.toEntity(record) : null;
+    }
+
     async findAll(page: number, limit: number, filters?: any): Promise<{ data: CourseEnrollmentEntity[], total: number }> {
         const skip = (page - 1) * limit;
         const where: Prisma.CourseEnrollmentWhereInput = {};

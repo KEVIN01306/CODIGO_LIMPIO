@@ -20,4 +20,14 @@ export const sebConfigurationSchema = z.object({
     .string()
     .trim()
     .max(255, 'SEB configuration key cannot exceed 255 characters'),
+  sebConfigFile: z
+    .any()
+    .optional()
+    .refine((file) => {
+      if (!file) return true;
+      if (file instanceof File) {
+        return file.name.toLowerCase().endsWith('.seb');
+      }
+      return true;
+    }, 'Only .seb files are allowed.'),
 });

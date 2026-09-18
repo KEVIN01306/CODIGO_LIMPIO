@@ -9,6 +9,9 @@ export interface CreateAssessmentDTO {
     timeLimitMinutes?: number;
     allowedLanguage?: string;
     strictMode?: boolean;
+    requireSeb?: boolean;
+    sebConfigKey?: string | null;
+    sebConfigFilePath?: string | null;
 }
 export interface UpdateAssessmentDTO {
     title?: string;
@@ -20,5 +23,8 @@ export interface UpdateAssessmentDTO {
     timeLimitMinutes?: number;
     allowedLanguage?: string;
     strictMode?: boolean;
+    requireSeb?: boolean;
+    sebConfigKey?: string | null;
+    sebConfigFilePath?: string | null;
 }
 //# sourceMappingURL=assessment.interfaces.d.ts.map

@@ -14,6 +14,8 @@ async function main() {
             slug: 'default-tenant',
             name: 'Institución Default',
             isActive: true,
+            defaultSebConfigKey: "6c25fa7acf8e8b4cf0723e51455a54b666ada172387f087956eb89691b625c27",
+            defaultSebConfigFilePath: "https://pub-02bd975ce3ff4de2ad7e79444cfd7567.r2.dev/bacd0c87-52a6-4096-97f8-1fbbd65e03fd/tenant/seb-prueba-3.seb"
         }
     });
 
@@ -171,13 +173,24 @@ async function main() {
     for (const perm of permissionsList) {
         const dbPerm = await prisma.permission.findUnique({ where: { action: perm.action } });
         if (dbPerm) {
-            // Teacher gets all assessments and academic read permissions (excluding tenant config and roles)
-            if ((perm.action.startsWith('assessments:') || perm.action.endsWith(':read')) && !perm.action.startsWith('tenant:') && !perm.action.startsWith('roles:')) {
+            // Teacher gets all assessments permissions and academic read permissions (no tenant:read required, handled at backend level)
+            const isTeacherPerm =
+                perm.action.startsWith('assessments:') ||
+                (perm.action.endsWith(':read') && !perm.action.startsWith('tenant:') && !perm.action.startsWith('roles:'));
+
+            if (isTeacherPerm) {
                 await prisma.rolePermission.upsert({
                     where: { roleId_permissionId: { roleId: teacherRole.id, permissionId: dbPerm.id } },
                     update: {}, create: { roleId: teacherRole.id, permissionId: dbPerm.id }
                 });
+            } else if (perm.action.startsWith('tenant:')) {
+                // Ensure teacher does not retain tenant permissions
+                await prisma.rolePermission.deleteMany({
+                    where: { roleId: teacherRole.id, permissionId: dbPerm.id }
+                });
             }
+
+
 
             // Student gets assessments:read and courseEnrollments:read
             if (perm.action === 'assessments:read' || perm.action === 'courseEnrollments:read') {

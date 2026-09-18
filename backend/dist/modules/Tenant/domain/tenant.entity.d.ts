@@ -6,6 +6,7 @@ export interface Tenant {
     createdAt: Date;
     updatedAt: Date;
     defaultSebConfigKey: string | null;
+    defaultSebConfigFilePath: string | null;
 }
 export interface TenantConfiguration {
     id: string;
@@ -22,8 +23,11 @@ export interface UpdateTenantConfiguration {
 }
 export interface SebConfiguration {
     defaultSebConfigKey: string | null;
+    defaultSebConfigUrl?: string | null;
+    defaultSebConfigFilePath?: string | null;
 }
 export interface UpdateSebConfiguration {
-    defaultSebConfigKey: string | null;
+    defaultSebConfigKey?: string | null;
+    defaultSebConfigFilePath?: string | null;
 }
 //# sourceMappingURL=tenant.entity.d.ts.map

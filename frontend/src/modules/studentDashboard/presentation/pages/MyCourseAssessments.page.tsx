@@ -3,11 +3,10 @@ import { Box, Typography, CircularProgress, Chip } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlayArrow, Assignment, Visibility, RateReview } from '@mui/icons-material';
 import ListTable from '../../../../shared/components/tables/ListTable';
-import { getAssessments } from '../../../evaluation/assessment/infrastructure/assessment.service';
+import { getAssessments, startAssessment } from '../../../evaluation/assessment/infrastructure/assessment.service';
 import type { Assessment as AssessmentType } from '../../../evaluation/assessment/domain/assessment.interfaces';
 import { toast } from 'react-toastify';
 import {
-  startSubmission,
   getMySubmissions,
   type MySubmissionItem,
 } from '../../../sandbox/infrastructure/submission.service';
@@ -23,8 +22,10 @@ const MyCourseAssessments = () => {
   const [submissionsMap, setSubmissionsMap] = useState<Record<string, MySubmissionItem>>({});
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [startingId, setStartingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+
 
   useEffect(() => {
     if (offeringId) {
@@ -232,21 +233,36 @@ const MyCourseAssessments = () => {
           actions={[
             {
               name: 'Open Editor',
-              icon: <PlayArrow fontSize="small" />,
+              icon: startingId ? (
+                <CircularProgress size={16} sx={{ color: '#3b82f6' }} />
+              ) : (
+                <PlayArrow fontSize="small" />
+              ),
               color: '#3b82f6',
               visible: (row: AssessmentType) => {
                 const sub = submissionsMap[row.id];
                 return !sub || sub.status === 'IN_PROGRESS';
               },
+
               onClick: async (row: AssessmentType) => {
+                if (startingId) return; // Prevent duplicate requests
+                setStartingId(row.id);
                 try {
-                  const submission = await startSubmission(row.id);
-                  navigate(`/sandbox/${submission.id}`);
-                } catch (error) {
-                  toast.error('Failed to start submission. It may be already completed.');
+                  const result = await startAssessment(row.id);
+                  if (result.requiresSeb) {
+                    window.location.href = result.redirectUrl;
+                  } else {
+                    navigate(result.redirectUrl);
+                  }
+                } catch (error: any) {
+                  const errorMsg = error?.response?.data?.message || 'Failed to start assessment. It may be already completed.';
+                  toast.error(errorMsg);
+                } finally {
+                  setStartingId(null);
                 }
               },
             },
+
             {
               name: 'Review Feedback',
               icon: <RateReview fontSize="small" />,

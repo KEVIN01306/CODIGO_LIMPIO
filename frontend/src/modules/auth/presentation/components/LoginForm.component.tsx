@@ -13,13 +13,15 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { loginSchema, type LoginFormValues } from '../../domain/auth.schemas';
 import { login } from '../../infrastructure/auth.service';
 import { useAuthStore } from '../../../../core/store/auth.store';
-import { useNavigate } from 'react-router-dom';
+import api from '../../../../core/api/axios.config';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
 const LoginForm = () => {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -40,7 +42,40 @@ const LoginForm = () => {
     try {
       const response = await login(values);
       setAuth(response.user, response.accessToken);
-      navigate('/');
+
+      // 1. Check if there was a previous route in location.state (e.g. from ProtectedRoute)
+      const stateFrom = (location.state as any)?.from;
+      let targetPath = '/';
+
+      if (stateFrom) {
+        if (typeof stateFrom === 'string' && stateFrom.trim() && !stateFrom.startsWith('/auth')) {
+          targetPath = stateFrom;
+        } else if (typeof stateFrom === 'object' && stateFrom.pathname && !stateFrom.pathname.startsWith('/auth')) {
+          targetPath = `${stateFrom.pathname}${stateFrom.search || ''}${stateFrom.hash || ''}`;
+        }
+      }
+
+      // 2. Check for SEB active submission cookie or query active submission
+      const cookieMatch = document.cookie.match(/(?:^|; )seb_active_submission_id=([^;]+)/);
+      const sebCookieSubmissionId = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+
+      if (sebCookieSubmissionId) {
+        targetPath = `/sandbox/${sebCookieSubmissionId}`;
+        document.cookie = 'seb_active_submission_id=; path=/; max-age=0;';
+      } else if (targetPath === '/' && (navigator.userAgent.includes('SEB') || navigator.userAgent.includes('SafeExamBrowser'))) {
+        try {
+          const activeRes = await api.get('/evaluations/submissions/active', {
+            headers: { Authorization: `Bearer ${response.accessToken}` }
+          });
+          if (activeRes.data?.data?.id) {
+            targetPath = `/sandbox/${activeRes.data.data.id}`;
+          }
+        } catch {
+          // fallback to targetPath
+        }
+      }
+
+      navigate(targetPath, { replace: true });
       toast.success('Signed in successfully');
     } catch (error: any) {
       setGlobalError(

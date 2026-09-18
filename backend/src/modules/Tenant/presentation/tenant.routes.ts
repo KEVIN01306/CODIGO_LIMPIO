@@ -2,6 +2,7 @@ import { Router } from "express";
 import { tenantController, sebConfigController } from "../tenant.module.js";
 import { AuthMiddleware } from "@app/middleware/Auth.middleware.js";
 import { ValidatedMiddleware } from "@app/middleware/Validated.middleware.js";
+import { MulterUploadProvider } from "@shared/infrastructure/multer.provider.js";
 import { UpdateTenantSchema, UpdateSebConfigSchema } from "./tenant.schemas.js";
 
 const router = Router();
@@ -34,13 +35,15 @@ router.patch(
 // SEB Configuration
 router.get(
     "/configuration/seb",
-    authMiddleware.checkPermission(["tenant:read"]),
+    authMiddleware.checkPermissionSome(["tenant:read", "assessments:create", "assessments:update"]),
     sebConfigController.getSebConfig
 );
+
 
 router.put(
     "/configuration/seb",
     authMiddleware.checkPermission(["tenant:update"]),
+    MulterUploadProvider.seb("file", false),
     validatedMiddleware.validateBody(UpdateSebConfigSchema),
     sebConfigController.updateSebConfig
 );
@@ -48,6 +51,7 @@ router.put(
 router.patch(
     "/configuration/seb",
     authMiddleware.checkPermission(["tenant:update"]),
+    MulterUploadProvider.seb("file", false),
     validatedMiddleware.validateBody(UpdateSebConfigSchema),
     sebConfigController.updateSebConfig
 );

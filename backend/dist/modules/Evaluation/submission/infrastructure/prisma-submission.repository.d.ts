@@ -6,6 +6,7 @@ export declare class PrismaSubmissionRepository implements SubmissionRepository 
     constructor(prisma: PrismaClient);
     private toEntity;
     findByAssessmentAndStudent(assessmentId: string, studentId: string): Promise<SubmissionEntity | null>;
+    findActiveByStudent(studentId: string): Promise<SubmissionEntity | null>;
     create(data: {
         assessmentId: string;
         studentId: string;

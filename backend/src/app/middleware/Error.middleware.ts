@@ -5,7 +5,11 @@ export const ErrorMiddleware = (err: any, req: Request, res: Response, next: Nex
     let statusCode = err.statusCode || 500;
     let code = err.code || 'INTERNAL_SERVER_ERROR';
     let message = err.message || 'Error interno del servidor';
-    console.log(err)
+
+    if (statusCode >= 500) {
+        console.error("Server Error:", err);
+    }
+
     res.status(statusCode).json(
         ResponseHttp.error(message, code)
     );

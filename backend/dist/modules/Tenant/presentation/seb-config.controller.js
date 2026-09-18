@@ -21,7 +21,8 @@ export class SebConfigController extends BaseController {
     updateSebConfig = async (req, res, next) => {
         try {
             const { tenantId } = this.obtenerEntorno(res);
-            const updated = await this.updateSebConfigUseCase.execute(tenantId, req.body.defaultSebConfigKey ?? null);
+            const defaultSebConfigKey = req.body.defaultSebConfigKey !== undefined ? req.body.defaultSebConfigKey : null;
+            const updated = await this.updateSebConfigUseCase.execute(tenantId, { defaultSebConfigKey }, req.file);
             return res.status(200).json(ResponseHttp.success("SEB configuration updated successfully", updated));
         }
         catch (error) {

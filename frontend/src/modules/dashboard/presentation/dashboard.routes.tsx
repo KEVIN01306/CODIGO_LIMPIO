@@ -7,3 +7,4 @@ export const dashboardRoutes: RouteObject[] = [
     element: <DashboardPage />,
   },
 ];
+

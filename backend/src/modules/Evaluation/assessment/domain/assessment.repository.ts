@@ -7,4 +7,5 @@ export interface AssessmentRepository {
     findById(id: string): Promise<AssessmentEntity | null>;
     findAll(page: number, limit: number, filters?: any): Promise<{ data: AssessmentEntity[], total: number }>;
     delete(id: string): Promise<void>;
+    getOfferingTenantId(offeringId: string): Promise<string | null>;
 }

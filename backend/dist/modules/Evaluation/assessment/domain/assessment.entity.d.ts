@@ -13,6 +13,10 @@ export declare class AssessmentEntity {
     readonly createdAt?: Date | undefined;
     readonly updatedAt?: Date | undefined;
     readonly offering?: any | undefined;
-    constructor(id: string, offeringId: string, title: string, type: 'QUIZ' | 'EXAM' | 'PROJECT' | 'HOMEWORK' | 'AI_INTERVIEW', maxScore: number, strictMode: boolean, description?: string | undefined, weight?: number | undefined, dueDate?: Date | undefined, timeLimitMinutes?: number | undefined, allowedLanguage?: string | undefined, createdAt?: Date | undefined, updatedAt?: Date | undefined, offering?: any | undefined);
+    readonly requireSeb: boolean;
+    readonly sebConfigKey?: string | null | undefined;
+    readonly sebConfigFilePath?: string | null | undefined;
+    constructor(id: string, offeringId: string, title: string, type: 'QUIZ' | 'EXAM' | 'PROJECT' | 'HOMEWORK' | 'AI_INTERVIEW', maxScore: number, strictMode: boolean, description?: string | undefined, weight?: number | undefined, dueDate?: Date | undefined, timeLimitMinutes?: number | undefined, allowedLanguage?: string | undefined, createdAt?: Date | undefined, updatedAt?: Date | undefined, offering?: any | undefined, // Can be typed fully if needed
+    requireSeb?: boolean, sebConfigKey?: string | null | undefined, sebConfigFilePath?: string | null | undefined);
 }
 //# sourceMappingURL=assessment.entity.d.ts.map

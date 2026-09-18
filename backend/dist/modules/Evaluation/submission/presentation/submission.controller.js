@@ -47,6 +47,22 @@ export class SubmissionController extends BaseController {
             next(error);
         }
     };
+    getActive = async (req, res, next) => {
+        try {
+            const user = req.user;
+            const studentProfile = await prisma.studentProfile.findUnique({
+                where: { userId: user.id }
+            });
+            if (!studentProfile) {
+                return res.status(200).json(ResponseHttp.success('No active submission', null));
+            }
+            const active = await this.startUseCase?.repository?.findActiveByStudent(studentProfile.id);
+            return res.status(200).json(ResponseHttp.success('Active submission fetched', active || null));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
     sync = async (req, res, next) => {
         try {
             const id = req.params.id;
