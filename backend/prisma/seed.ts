@@ -192,8 +192,13 @@ async function main() {
 
 
 
-            // Student gets assessments:read and courseEnrollments:read
-            if (perm.action === 'assessments:read' || perm.action === 'courseEnrollments:read') {
+            // Student gets assessments:read, courseEnrollments:read, courseOfferings:read, and courses:read
+            if (
+                perm.action === 'assessments:read' ||
+                perm.action === 'courseEnrollments:read' ||
+                perm.action === 'courseOfferings:read' ||
+                perm.action === 'courses:read'
+            ) {
                 await prisma.rolePermission.upsert({
                     where: { roleId_permissionId: { roleId: studentRole.id, permissionId: dbPerm.id } },
                     update: {}, create: { roleId: studentRole.id, permissionId: dbPerm.id }

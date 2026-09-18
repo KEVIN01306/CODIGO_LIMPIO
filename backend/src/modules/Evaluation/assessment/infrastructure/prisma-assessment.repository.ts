@@ -4,7 +4,7 @@ import { AssessmentEntity } from "../domain/assessment.entity.js";
 import { CreateAssessmentDTO, UpdateAssessmentDTO } from "../domain/assessment.interfaces.js";
 
 export class PrismaAssessmentRepository implements AssessmentRepository {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClient) { }
 
     private toEntity(record: any): AssessmentEntity {
         return new AssessmentEntity(
