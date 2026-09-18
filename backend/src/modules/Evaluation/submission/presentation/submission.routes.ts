@@ -48,7 +48,8 @@ const controller = new SubmissionController(
     gradeSubmissionUseCase,
     getStudentSubmissionFeedbackUseCase,
     listStudentSubmissionsUseCase,
-    getStudentCourseGradesUseCase
+    getStudentCourseGradesUseCase,
+    repository
 );
 
 const authMiddleware = new AuthMiddleware();

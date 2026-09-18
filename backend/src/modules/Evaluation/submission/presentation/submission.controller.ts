@@ -12,6 +12,7 @@ import type { GradeSubmissionUseCase } from '../application/grade-submission.use
 import type { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import type { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
 import type { GetStudentCourseGradesUseCase } from '../application/get-student-course-grades.usecase.js';
+import type { SubmissionRepository } from '../domain/submission.repository.js';
 import AppError from '@shared/errors/AppError.js';
 import { PrismaClient } from '@prisma/client';
 import { submissionEventBus } from '../infrastructure/submission-events.bus.js';
@@ -30,7 +31,8 @@ export class SubmissionController extends BaseController {
         private readonly gradeSubmissionUseCase: GradeSubmissionUseCase,
         private readonly getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase,
         private readonly listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase,
-        private readonly getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase
+        private readonly getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase,
+        private readonly submissionRepo: SubmissionRepository
     ) { super(); }
 
     start = async (req: Request, res: Response, next: NextFunction) => {
@@ -60,7 +62,7 @@ export class SubmissionController extends BaseController {
                 return res.status(200).json(ResponseHttp.success('No active submission', null));
             }
 
-            const active = await (this.startUseCase as any)?.repository?.findActiveByStudent(studentProfile.id);
+            const active = await this.submissionRepo.findActiveByStudent(studentProfile.id);
             return res.status(200).json(ResponseHttp.success('Active submission fetched', active || null));
         } catch (error) { next(error); }
     }

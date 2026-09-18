@@ -18,7 +18,7 @@ export class PrismaSubmissionRepository {
         const record = await this.prisma.submission.findFirst({
             where: { studentId, status: 'IN_PROGRESS' },
             include: { assessment: true, student: { include: { user: true } } },
-            orderBy: { submittedAt: 'desc' }
+            orderBy: { startedAt: 'desc' }
         });
         return record ? this.toEntity(record) : null;
     }

@@ -58,11 +58,12 @@ const LoginForm = () => {
       // 2. Check for SEB active submission cookie or query active submission
       const cookieMatch = document.cookie.match(/(?:^|; )seb_active_submission_id=([^;]+)/);
       const sebCookieSubmissionId = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+      const isSeb = navigator.userAgent.includes('SEB') || navigator.userAgent.includes('SafeExamBrowser');
 
       if (sebCookieSubmissionId) {
         targetPath = `/sandbox/${sebCookieSubmissionId}`;
         document.cookie = 'seb_active_submission_id=; path=/; max-age=0;';
-      } else if (targetPath === '/' && (navigator.userAgent.includes('SEB') || navigator.userAgent.includes('SafeExamBrowser'))) {
+      } else if (isSeb && !targetPath.startsWith('/sandbox/')) {
         try {
           const activeRes = await api.get('/evaluations/submissions/active', {
             headers: { Authorization: `Bearer ${response.accessToken}` }

@@ -11,6 +11,7 @@ import type { GradeSubmissionUseCase } from '../application/grade-submission.use
 import type { GetStudentSubmissionFeedbackUseCase } from '../application/get-student-submission-feedback.usecase.js';
 import type { ListStudentSubmissionsUseCase } from '../application/list-student-submissions.usecase.js';
 import type { GetStudentCourseGradesUseCase } from '../application/get-student-course-grades.usecase.js';
+import type { SubmissionRepository } from '../domain/submission.repository.js';
 export declare class SubmissionController extends BaseController {
     private readonly startUseCase;
     private readonly syncUseCase;
@@ -23,7 +24,8 @@ export declare class SubmissionController extends BaseController {
     private readonly getStudentSubmissionFeedbackUseCase;
     private readonly listStudentSubmissionsUseCase;
     private readonly getStudentCourseGradesUseCase;
-    constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase, getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase);
+    private readonly submissionRepo;
+    constructor(startUseCase: StartSubmissionUseCase, syncUseCase: SyncSubmissionUseCase, finishUseCase: FinishSubmissionUseCase, getUseCase: GetSubmissionUseCase, updateCodeSnapshotUseCase: UpdateCodeSnapshotUseCase, runCodeUseCase: RunCodeUseCase, listAssessmentSubmissionsUseCase: ListAssessmentSubmissionsUseCase, gradeSubmissionUseCase: GradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase: GetStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase: ListStudentSubmissionsUseCase, getStudentCourseGradesUseCase: GetStudentCourseGradesUseCase, submissionRepo: SubmissionRepository);
     start: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     getActive: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
     sync: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;

@@ -16,7 +16,8 @@ export class SubmissionController extends BaseController {
     getStudentSubmissionFeedbackUseCase;
     listStudentSubmissionsUseCase;
     getStudentCourseGradesUseCase;
-    constructor(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase, getStudentCourseGradesUseCase) {
+    submissionRepo;
+    constructor(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase, getStudentCourseGradesUseCase, submissionRepo) {
         super();
         this.startUseCase = startUseCase;
         this.syncUseCase = syncUseCase;
@@ -29,6 +30,7 @@ export class SubmissionController extends BaseController {
         this.getStudentSubmissionFeedbackUseCase = getStudentSubmissionFeedbackUseCase;
         this.listStudentSubmissionsUseCase = listStudentSubmissionsUseCase;
         this.getStudentCourseGradesUseCase = getStudentCourseGradesUseCase;
+        this.submissionRepo = submissionRepo;
     }
     start = async (req, res, next) => {
         try {
@@ -56,7 +58,7 @@ export class SubmissionController extends BaseController {
             if (!studentProfile) {
                 return res.status(200).json(ResponseHttp.success('No active submission', null));
             }
-            const active = await this.startUseCase?.repository?.findActiveByStudent(studentProfile.id);
+            const active = await this.submissionRepo.findActiveByStudent(studentProfile.id);
             return res.status(200).json(ResponseHttp.success('Active submission fetched', active || null));
         }
         catch (error) {

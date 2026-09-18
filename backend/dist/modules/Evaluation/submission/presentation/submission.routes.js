@@ -34,7 +34,7 @@ const gradeSubmissionUseCase = new GradeSubmissionUseCase(repository);
 const getStudentSubmissionFeedbackUseCase = new GetStudentSubmissionFeedbackUseCase(repository);
 const listStudentSubmissionsUseCase = new ListStudentSubmissionsUseCase(repository);
 const getStudentCourseGradesUseCase = new GetStudentCourseGradesUseCase(repository);
-const controller = new SubmissionController(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase, getStudentCourseGradesUseCase);
+const controller = new SubmissionController(startUseCase, syncUseCase, finishUseCase, getUseCase, updateCodeSnapshotUseCase, runCodeUseCase, listAssessmentSubmissionsUseCase, gradeSubmissionUseCase, getStudentSubmissionFeedbackUseCase, listStudentSubmissionsUseCase, getStudentCourseGradesUseCase, repository);
 const authMiddleware = new AuthMiddleware();
 const validatedMiddleware = new ValidatedMiddleware();
 // Middleware de autenticación global para este módulo

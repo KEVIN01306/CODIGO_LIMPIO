@@ -96,7 +96,7 @@ export class StartAssessmentUseCase {
         });
 
         // 9. Construct SEB launch URL
-        const launchBaseUrl = process.env.SEB_LAUNCH_BASE_URL || "seb://localhost:8001/seb/config";
+        const launchBaseUrl = process.env.SEB_LAUNCH_BASE_URL || "seb://localhost:8000/seb/config";
         const redirectUrl = `${launchBaseUrl}?token=${sebToken}`;
 
 
