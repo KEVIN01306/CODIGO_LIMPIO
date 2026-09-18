@@ -71,10 +71,12 @@ export class SebDownloadController {
             const fileData = await this.storageProvider.getFile(r2Key);
 
             // 5. Send .seb binary response to Safe Exam Browser & set active submission cookie
+            const isProduction = process.env.NODE_ENV !== "development";
             res.cookie("seb_active_submission_id", payload.submissionId, {
                 maxAge: 30 * 60 * 1000, // 30 minutes
                 httpOnly: false,
-                sameSite: "lax",
+                secure: isProduction,
+                sameSite: isProduction ? "none" : "lax",
                 path: "/",
             });
 

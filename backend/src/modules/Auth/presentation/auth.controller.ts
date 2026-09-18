@@ -7,10 +7,12 @@ import type { GetProfileUseCase } from "../application/get-profile.usecase.js";
 import type { LogoutUseCase } from "../application/logout.usecase.js";
 
 
+const isProduction = process.env.NODE_ENV !== "development";
+
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: (process.env.NODE_ENV === "production" ? 'strict' : 'lax') as any,
+    secure: isProduction,
+    sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/'
 }
@@ -43,7 +45,7 @@ export class AuthController {
 
     refresh = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const tokenReceived = req.cookies.refreshToken;
+            const tokenReceived = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
 
             if (!tokenReceived) {
                 throw new AppError("You must log in again", "MISSING_COOKIE", 401)
@@ -81,7 +83,7 @@ export class AuthController {
 
     logout = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const tokenReceived = req.cookies.refreshToken;
+            const tokenReceived = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
 
             if (tokenReceived) {
                 await this.logoutUseCase.execute(tokenReceived);

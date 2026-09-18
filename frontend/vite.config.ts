@@ -10,7 +10,7 @@ export default defineConfig({
     port: 8001,
     proxy: {
       '/seb': {
-        target: 'http://localhost:8000',
+        target: 'https://api-ccode-academy.kerrinfull.cloud',
         changeOrigin: true,
       },
     },
